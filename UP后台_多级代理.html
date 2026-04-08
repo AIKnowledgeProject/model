@@ -1,0 +1,3158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UP 管理后台</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      background: #f5f7fa;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== 左侧菜单 ===== */
+    .sidebar {
+      width: 240px;
+      background: #165DFF;
+      color: white;
+      flex-shrink: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      background: #1E40AF;
+      flex-shrink: 0;
+    }
+    .sidebar-nav {
+      flex: 1;
+      padding-top: 8px;
+    }
+    .nav-group-title {
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .nav-group-title:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .nav-group-title.open {
+      background: rgba(255,255,255,0.1);
+    }
+    .nav-group-title .arrow {
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+    .nav-group-title.open .arrow {
+      transform: rotate(180deg);
+    }
+    .nav-sub {
+      background: #0F48C9;
+      display: none;
+    }
+    .nav-sub.show {
+      display: block;
+    }
+    .nav-sub-item {
+      padding: 10px 20px 10px 36px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-sub-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .nav-sub-item.active {
+      background: #3B82F6;
+    }
+
+    /* ===== 右侧主体 ===== */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .topbar {
+      height: 64px;
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 14px;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+
+    /* ===== 页面容器 ===== */
+    .page {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .page.active {
+      display: block;
+    }
+
+    /* ============================================================
+       页面1: 代理商规则管理
+    ============================================================ */
+    #page-agent-rule {
+      padding: 20px;
+    }
+    #page-agent-rule .page-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+    .search-bar {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-bar label {
+      font-size: 14px;
+      color: #374151;
+    }
+    .search-bar input,
+    .search-bar select {
+      padding: 6px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      outline: none;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 6px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary {
+      background: #1d4ed8;
+      color: white;
+    }
+    .btn-default {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .btn-success {
+      background: #10b981;
+      color: #fff;
+    }
+    .btn-gray {
+      background: #9CA3AF;
+      color: #fff;
+    }
+    .btn-green {
+      background: #36D399;
+      color: #fff;
+    }
+    .btn-blue-lg {
+      height: 40px;
+      padding: 0 24px;
+      background: #165DFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn-sm-add {
+      background: #10b981;
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .rule-select-box {
+      position: relative;
+      display: inline-block;
+    }
+    .rule-select-dropdown {
+      position: absolute;
+      top: 35px;
+      left: 0;
+      width: 180px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 10;
+      display: none;
+    }
+    .rule-select-dropdown div {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .rule-select-dropdown div:hover { background: #f3f4f6; }
+
+    .table-box {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .table-box table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .table-box th, .table-box td {
+      padding: 12px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .table-box th {
+      background: #f9fafb;
+      font-weight: bold;
+      color: #333;
+    }
+    .table-box tr:hover td { background: #f9fafb; }
+    .table-operate {
+      color: #1d4ed8;
+      cursor: pointer;
+      margin: 0 4px;
+      font-size: 14px;
+    }
+    .table-operate:hover { text-decoration: underline; }
+    .btn-view { color: #16a34a; }
+
+    .switch {
+      width: 40px;
+      height: 20px;
+      background: #d1d5db;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .switch::after {
+      content: "";
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      transition: 0.2s;
+    }
+    .switch.on { background: #1d4ed8; }
+    .switch.on::after { left: 22px; }
+
+    /* ============================================================
+       页面2: 白卡管理
+    ============================================================ */
+    #page-white-card {
+      padding: 0;
+    }
+    .wc-title {
+      padding: 24px 30px 16px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+    .tab-bar {
+      display: flex;
+      background: #fff;
+      margin: 0 30px;
+      border-radius: 8px 8px 0 0;
+      overflow: hidden;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .tab-item {
+      padding: 0 28px;
+      height: 48px;
+      line-height: 48px;
+      font-size: 15px;
+      cursor: pointer;
+      color: #6b7280;
+    }
+    .tab-item.active {
+      color: #165DFF;
+      border-bottom: 2px solid #165DFF;
+      margin-bottom: -2px;
+      font-weight: 500;
+    }
+
+    .filter-bar {
+      background-color: #fff;
+      margin: 0 30px 20px;
+      padding: 20px 24px;
+      border-radius: 0 0 8px 8px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-item label {
+      font-size: 14px;
+      color: #374151;
+      white-space: nowrap;
+    }
+    .filter-select, .filter-input {
+      width: 160px;
+      height: 36px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 0 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 20px;
+      margin: 0 30px 20px;
+    }
+    .stats-card {
+      flex: 1;
+      background-color: #fff;
+      padding: 18px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .stats-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+    .stats-value { font-size: 22px; font-weight: bold; color: #165DFF; }
+
+    .table-container {
+      background-color: #fff;
+      margin: 0 30px 30px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table thead { background-color: #f5f7fa; }
+    .data-table th {
+      height: 48px;
+      text-align: left;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .data-table td {
+      height: 56px;
+      line-height: 56px;
+      padding: 0 16px;
+      font-size: 14px;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .data-table tr:hover td { background-color: #f9fafb; }
+    .tag {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .tag-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .tag-warning { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+
+    /* ============================================================
+       页面3: 统计中心
+    ============================================================ */
+    #page-stats {
+      padding: 24px;
+    }
+    .stats-breadcrumb {
+      font-size: 13px;
+      color: #86909C;
+      margin-bottom: 20px;
+    }
+    .stats-breadcrumb a {
+      color: #1D2129;
+      text-decoration: none;
+    }
+    .stats-tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #E5E6EB;
+    }
+    .stats-tab {
+      padding: 10px 20px;
+      font-size: 15px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      background-color: #F5F7FA;
+      color: #86909C;
+    }
+    .stats-tab.active {
+      background-color: #36D399;
+      color: #fff;
+    }
+    .search-area {
+      background-color: #fff;
+      padding: 20px 24px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .search-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .search-area .form-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .search-area .form-item label {
+      font-size: 13px;
+      color: #1D2129;
+      font-weight: 500;
+    }
+    .search-area .form-item input,
+    .search-area .form-item select {
+      padding: 10px 14px;
+      border: 1px solid #E5E6EB;
+      border-radius: 6px;
+      background-color: #F5F7FA;
+      font-size: 13px;
+      color: #1D2129;
+      outline: none;
+    }
+    .search-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .summary-area {
+      background-color: #fff;
+      padding: 20px 24px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .summary-card {
+      padding: 18px;
+      background-color: #F5F7FA;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .summary-card .s-title { font-size: 13px; color: #86909C; margin-bottom: 6px; }
+    .summary-card .s-value { font-size: 18px; font-weight: 600; color: #1D2129; }
+    .list-area {
+      background-color: #fff;
+      padding: 20px 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .list-header .tip { font-size: 12px; color: #86909C; }
+    .list-area table { width: 100%; border-collapse: collapse; }
+    .list-area th {
+      background-color: #F5F7FA;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1D2129;
+      border-bottom: 1px solid #E5E6EB;
+      white-space: nowrap;
+    }
+    .list-area td {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #1D2129;
+      border-bottom: 1px solid #E5E6EB;
+      white-space: nowrap;
+    }
+    .list-area tr:hover td { background-color: #F5F7FA; }
+    .type-sale { color: #36D399; font-weight: 500; }
+    .type-refund { color: #F53F3F; font-weight: 500; }
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    .pagination select {
+      padding: 5px 10px;
+      border: 1px solid #E5E6EB;
+      border-radius: 6px;
+      outline: none;
+    }
+    .pagination a {
+      padding: 5px 10px;
+      border: 1px solid #E5E6EB;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #1D2129;
+    }
+    .pagination a.active {
+      background-color: #165DFF;
+      color: #fff;
+      border-color: #165DFF;
+    }
+
+    /* ============================================================
+       通用弹窗
+    ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: white;
+      width: 800px;
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      padding: 0 20px;
+      height: 56px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .modal-close {
+      font-size: 22px;
+      cursor: pointer;
+      color: #9ca3af;
+      line-height: 1;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      text-align: right;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    /* 弹窗表单 */
+    .form-item-row {
+      margin-bottom: 14px;
+    }
+    .form-item-row label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .form-item-row input,
+    .form-item-row select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-item-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .form-item-inline label {
+      width: 130px;
+      text-align: right;
+      font-size: 14px;
+      color: #374151;
+      flex-shrink: 0;
+    }
+    .form-item-inline input,
+    .form-item-inline select {
+      flex: 1;
+      height: 38px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 0 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-row-flex {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .form-row-flex .form-item-row { flex: 1; margin-bottom: 0; }
+    .input-with-unit {
+      display: flex;
+      align-items: center;
+    }
+    .input-with-unit input { flex: 1; }
+    .input-unit {
+      margin-left: 8px;
+      font-size: 13px;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .rule-tip {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .ladder-box {
+      border: 1px solid #e5e7eb;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+    .step-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .step-item input { flex: 1; }
+    .range-split { color: #9ca3af; }
+    .card-type-box { display: flex; gap: 14px; margin-top: 4px; }
+    .card-type-item { display: flex; align-items: center; gap: 5px; font-size: 14px; }
+    .checkbox-group { display: flex; gap: 14px; margin-top: 4px; flex-wrap: wrap; }
+    /* 提成规则 — 业务块卡片 */
+    .biz-block {
+      border: 1px solid #e5e7eb; border-radius: 6px;
+      padding: 14px 16px; margin-bottom: 14px; background: #fafafa;
+    }
+    .biz-block-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; cursor: pointer; user-select: none;
+    }
+    .biz-block-title {
+      font-size: 14px; font-weight: 600; color: #111827;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .biz-block-toggle {
+      font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 6px;
+    }
+    .biz-block-body { }
+    .biz-channel-row {
+      background: #f0fdf4; border-radius: 4px; padding: 8px 10px;
+      margin-bottom: 10px; font-size: 13px; color: #374151;
+    }
+    .biz-channel-row label { display: inline; margin-bottom: 0; font-size: 13px; color: #374151; }
+    .biz-channel-row .channel-hint { font-size: 12px; color: #9ca3af; margin-bottom: 6px; display: block; }
+    .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 14px; }
+    .detail-item { margin-bottom: 10px; font-size: 14px; }
+    .detail-label { display: inline-block; width: 160px; color: #6b7280; }
+    /* ============================================================
+       商务提成规则 专用样式
+    ============================================================ */
+    #page-biz-rule { padding: 20px; }
+    .biz-type-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; }
+    .biz-type-tab {
+      padding: 10px 28px; font-size: 14px; cursor: pointer;
+      color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: color .2s;
+    }
+    .biz-type-tab:hover { color: #165DFF; }
+    .biz-type-tab.active { color: #165DFF; border-bottom-color: #165DFF; font-weight: 600; }
+    .biz-rule-panel { display: none; }
+    .biz-rule-panel.active { display: block; }
+    /* 渠道多选标签 */
+    .channel-checkboxes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .channel-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 12px; border: 1px solid #d1d5db; border-radius: 4px;
+      font-size: 13px; cursor: pointer; user-select: none; transition: all .15s;
+    }
+    .channel-tag input[type=checkbox] { accent-color: #165DFF; cursor: pointer; }
+    .channel-tag:has(input:checked) { border-color: #165DFF; background: #eff6ff; color: #165DFF; }
+    /* 阶梯配置块 */
+    .ladder-section { margin-top: 8px; }
+    .ladder-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+      background: #f9fafb; padding: 8px 10px; border-radius: 4px;
+    }
+    .ladder-row input { width: 110px; }
+    .ladder-row .unit { font-size: 12px; color: #9ca3af; white-space: nowrap; }
+    .ladder-row .del-btn {
+      margin-left: auto; color: #ef4444; cursor: pointer; font-size: 18px;
+      line-height: 1; background: none; border: none; padding: 0 4px;
+    }
+    /* 规则卡片 */
+    .rule-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .rule-card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .rule-card-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+    .rule-card-ops { display: flex; gap: 12px; align-items: center; }
+    .rule-detail-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px 20px;
+    }
+    .rule-detail-item { font-size: 13px; }
+    .rule-detail-item .rd-label { color: #6b7280; margin-bottom: 2px; }
+    .rule-detail-item .rd-value { color: #1a1a1a; font-weight: 500; }
+    .channel-badge {
+      display: inline-block; padding: 2px 8px; background: #eff6ff;
+      color: #165DFF; border-radius: 4px; font-size: 12px; margin-right: 4px;
+    }
+    .empty-tip { text-align: center; color: #9ca3af; padding: 40px 0; font-size: 14px; }
+
+    /* ============================================================
+       代理商准入 — 搜索式下拉（combobox）
+    ============================================================ */
+    .combo-wrap {
+      position: relative;
+      flex: 1;
+      display: block;
+      min-width: 0;
+    }
+    .combo-input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 0 32px 0 10px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      cursor: text;
+    }
+    .combo-input:focus { border-color: #165DFF; }
+    .combo-arrow {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .combo-dropdown {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      z-index: 9999;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+      min-width: 120px;
+    }
+    .combo-dropdown.open { display: block; }
+    .combo-option {
+      padding: 9px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #374151;
+    }
+    .combo-option:hover, .combo-option.focused { background: #eff6ff; color: #165DFF; }
+    .combo-option.no-result { color: #9ca3af; cursor: default; }
+    .combo-option.no-result:hover { background: none; }
+
+    /* 推荐人 — 两段式选择 */
+    .referrer-wrap { display: flex; gap: 8px; flex: 1; min-width: 0; width: 100%; }
+    .referrer-type-sel {
+      width: 110px;
+      height: 38px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 0 8px;
+      font-size: 14px;
+      outline: none;
+      flex-shrink: 0;
+    }
+    .referrer-type-sel:focus { border-color: #165DFF; }
+
+    /* 准入页 */
+    #page-agent-admission { padding: 20px; }
+    #page-agent-admission .page-title {
+      font-size: 20px; font-weight: bold; margin-bottom: 16px; color: #1a1a1a;
+    }
+
+    /* 新增代理商弹窗 — 宽 600px，label左对齐 */
+    #admissionModal .modal-box { width: 620px; }
+    .adm-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-bottom: 16px;
+    }
+    .adm-label {
+      width: 120px;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: #374151;
+      padding-top: 10px;
+      text-align: right;
+      padding-right: 12px;
+    }
+    .adm-label .req { color: #ef4444; }
+    .adm-field {
+      flex: 1;
+      min-width: 0;
+    }
+    .adm-field input[type=text]:not(.combo-input),
+    .adm-field input[type=email],
+    .adm-field input[type=tel],
+    .adm-field select {
+      width: 100%;
+      height: 38px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 0 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .adm-field input:not(.combo-input):focus,
+    .adm-field select:focus { border-color: #165DFF; }
+    /* 手机号行：国码 + 号码 */
+    .phone-row { display: flex; gap: 8px; }
+    .phone-row .cc-select { width: 90px; flex-shrink: 0; }
+    .phone-row .phone-input { flex: 1; }
+    /* 上传营业执照 */
+    .upload-box {
+      width: 88px; height: 88px;
+      border: 1px dashed #d1d5db;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 28px; color: #9ca3af;
+      background: #fafafa;
+      transition: border-color .2s;
+    }
+    .upload-box:hover { border-color: #165DFF; color: #165DFF; }
+    .upload-tip { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+
+    /* ===== 晋级达成 Tooltip ===== */
+    .upgrade-cell { position: relative; display: inline-block; cursor: default; }
+    .upgrade-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a2e;
+      color: #fff;
+      border-radius: 8px;
+      padding: 12px 16px;
+      width: 220px;
+      font-size: 13px;
+      line-height: 1.8;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      z-index: 9999;
+      white-space: normal;
+    }
+    .upgrade-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #1a1a2e;
+    }
+    .upgrade-cell:hover .upgrade-tooltip { display: block; }
+    .upgrade-tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; }
+    .upgrade-tooltip .tt-label { color: #9ca3af; white-space: nowrap; }
+    .upgrade-tooltip .tt-val { font-weight: 600; color: #fff; }
+    .upgrade-tooltip .tt-val.done { color: #34d399; }
+    .upgrade-tooltip .tt-val.undone { color: #fbbf24; }
+    .upgrade-tooltip .tt-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 6px 0; }
+
+    /* ===== 右抽屉 ===== */
+    .drawer-mask {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 2000;
+    }
+    .drawer-mask.open { display: block; }
+    .drawer {
+      position: fixed;
+      top: 0; right: -520px;
+      width: 520px; height: 100vh;
+      background: #fff;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+      z-index: 2001;
+      display: flex; flex-direction: column;
+      transition: right 0.3s ease;
+      overflow: hidden;
+    }
+    .drawer.open { right: 0; }
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .drawer-header .dh-title { font-size: 17px; font-weight: 700; color: #111827; }
+    .drawer-header .dh-close {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #9ca3af; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .drawer-header .dh-close:hover { background: #f3f4f6; color: #374151; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
+
+    /* 抽屉内分区 */
+    .drawer-section { margin-bottom: 28px; }
+    .drawer-section-title {
+      font-size: 14px; font-weight: 600; color: #374151;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .drawer-section-title .ds-icon { font-size: 15px; }
+    .drawer-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px;
+    }
+    .drawer-item { display: flex; flex-direction: column; gap: 3px; }
+    .drawer-item .di-label { font-size: 12px; color: #9ca3af; }
+    .drawer-item .di-val { font-size: 14px; color: #111827; font-weight: 500; word-break: break-all; }
+
+    /* 晋级进度条 */
+    .progress-row { margin-bottom: 14px; }
+    .progress-row .pr-header {
+      display: flex; justify-content: space-between;
+      font-size: 13px; margin-bottom: 6px;
+    }
+    .progress-row .pr-label { color: #374151; font-weight: 500; }
+    .progress-row .pr-pct { color: #6b7280; font-size: 12px; }
+    .progress-track {
+      height: 8px; background: #f0f0f0; border-radius: 99px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, #165DFF, #38bdf8);
+      transition: width 0.4s ease;
+    }
+    .progress-bar.done { background: linear-gradient(90deg, #10b981, #34d399); }
+    .progress-row .pr-detail {
+      font-size: 12px; color: #9ca3af; margin-top: 4px;
+    }
+    .progress-row .pr-detail span { color: #374151; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<!-- ===== 侧边栏 ===== -->
+<div class="sidebar">
+  <div class="sidebar-logo">UP 管理后台</div>
+  <div class="sidebar-nav">
+    <!-- 代理商管理 -->
+    <div class="nav-group-title open" onclick="toggleGroup(this)">
+      <span>代理商管理</span>
+      <span class="arrow">▼</span>
+    </div>
+    <div class="nav-sub show">
+      <div class="nav-sub-item" onclick="switchPage('agent-list', this)">代理商管理</div>
+      <div class="nav-sub-item" onclick="switchPage('agent-admission', this)">代理商准入</div>
+      <div class="nav-sub-item active" onclick="switchPage('agent-rule', this)">代理商规则管理</div>
+    </div>
+    <!-- 卡片管理 -->
+    <div class="nav-group-title" onclick="toggleGroup(this)">
+      <span>卡片管理</span>
+      <span class="arrow">▼</span>
+    </div>
+    <div class="nav-sub">
+      <div class="nav-sub-item" onclick="switchPage('white-card', this)">库存管理</div>
+    </div>
+    <!-- 统计中心 -->
+    <div class="nav-group-title" onclick="toggleGroup(this)">
+      <span>统计中心</span>
+      <span class="arrow">▼</span>
+    </div>
+    <div class="nav-sub">
+      <div class="nav-sub-item" onclick="switchPage('stats', this)">代理商提成统计</div>
+    </div>
+    <!-- 内部管理 -->
+    <div class="nav-group-title" onclick="toggleGroup(this)">
+      <span>内部管理</span>
+      <span class="arrow">▼</span>
+    </div>
+    <div class="nav-sub">
+      <div class="nav-sub-item" onclick="switchPage('broker', this)">中介管理</div>
+      <div class="nav-sub-item" onclick="switchPage('biz-rule', this)">商务提成规则</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 右侧主体 ===== -->
+<div class="main">
+  <div class="topbar" id="topbar">首页 / 代理商管理 / 代理商规则管理</div>
+
+  <!-- ========== 页面: 代理商管理 ========== -->
+  <div class="page" id="page-agent-list">
+    <div class="page-title">代理商管理</div>
+
+    <!-- 搜索区 -->
+    <div class="search-bar" style="flex-wrap:wrap;gap:12px;">
+      <label>代理商名称：</label>
+      <input type="text" placeholder="请输入" style="width:150px;">
+      <label>代理商ID：</label>
+      <input type="text" placeholder="请输入" style="width:130px;">
+      <label>代理商级别：</label>
+      <select style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        <option value="">全部</option>
+        <option>一级代理</option>
+        <option>二级代理</option>
+      </select>
+      <label>代理商类型：</label>
+      <select style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        <option value="">全部</option>
+        <option>直签</option>
+        <option>分销</option>
+      </select>
+      <label>晋级达成：</label>
+      <select style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        <option value="">全部</option>
+        <option>已达成</option>
+        <option>未达成</option>
+      </select>
+      <label>状态：</label>
+      <select style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        <option value="">全部</option>
+        <option>启用</option>
+        <option>停用</option>
+      </select>
+      <label>推荐人类型：</label>
+      <select id="referrerType" onchange="updateReferrerOptions()" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        <option value="">全部</option>
+        <option value="broker">中介</option>
+        <option value="biz">商务</option>
+      </select>
+      <input type="text" id="referrerSearch" placeholder="输入姓名联想" list="referrerList" style="width:140px;">
+      <datalist id="referrerList">
+        <option value="张三">
+        <option value="李四">
+      </datalist>
+      <label>商务：</label>
+      <select id="bizOwnerSearch" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+        <option value="">全部</option>
+        <option>商务A</option>
+        <option>商务B</option>
+        <option>商务C</option>
+      </select>
+      <button class="btn btn-default">重置</button>
+      <button class="btn btn-primary">查询</button>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-box" style="overflow-x:auto;">
+      <table style="min-width:1800px;">
+        <thead>
+          <tr>
+            <th>代理商ID</th>
+            <th>商户编号</th>
+            <th>代理商名称</th>
+            <th>代理商级别</th>
+            <th>晋级达成情况</th>
+            <th>UPay代理商UID</th>
+            <th>Fortpay客户编号</th>
+            <th>邀请码</th>
+            <th>状态</th>
+            <th>充币钱包</th>
+            <th>提币钱包</th>
+            <th>充值费率</th>
+            <th>抵押费率</th>
+            <th>代理商类型</th>
+            <th>推荐人</th>
+            <th>所属商务</th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AG001</td>
+            <td>MER20260001</td>
+            <td>代理商Alpha</td>
+            <td><span style="background:#ecfdf5;color:#059669;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;">一级代理</span></td>
+            <td>
+              <div class="upgrade-cell">
+                <span style="background:#ecfdf5;color:#059669;border-radius:4px;padding:2px 8px;font-size:12px;">✓ 已达成</span>
+                <div class="upgrade-tooltip">
+                  <div class="tt-row"><span class="tt-label">充值量</span><span class="tt-val done">128,000 USDT</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">拓展二级代理</span><span class="tt-val done">8 人</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">达标周期</span><span class="tt-val done">3 个月</span></div>
+                </div>
+              </div>
+            </td>
+            <td>UID10000001</td>
+            <td>FP20001</td>
+            <td style="font-family:monospace;letter-spacing:1px;">ALPHA2026</td>
+            <td><span style="color:#10b981;font-weight:500;">启用</span></td>
+            <td style="font-size:12px;color:#374151;">0xA1B2...C3D4</td>
+            <td style="font-size:12px;color:#374151;">0xE5F6...A7B8</td>
+            <td>1.20%</td>
+            <td>0.50%</td>
+            <td>直签</td>
+            <td>张三（中介）</td>
+            <td>商务A</td>
+            <td>2026-03-01 10:00:00</td>
+            <td><span class="table-operate btn-view" onclick="openAgentDrawer('AG001')">查看详情</span></td>
+          </tr>
+          <tr>
+            <td>AG002</td>
+            <td>MER20260002</td>
+            <td>代理商Beta</td>
+            <td><span style="background:#eff6ff;color:#3b82f6;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;">二级代理</span></td>
+            <td>
+              <div class="upgrade-cell">
+                <span style="background:#fff7ed;color:#f59e0b;border-radius:4px;padding:2px 8px;font-size:12px;">✗ 未达成</span>
+                <div class="upgrade-tooltip">
+                  <div class="tt-row"><span class="tt-label">充值量</span><span class="tt-val undone">38,000 / 100,000 USDT</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">拓展二级代理</span><span class="tt-val undone">2 / 5 人</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">达标周期</span><span class="tt-val undone">进行中（第 1 月）</span></div>
+                </div>
+              </div>
+            </td>
+            <td>UID10000002</td>
+            <td>FP20002</td>
+            <td style="font-family:monospace;letter-spacing:1px;">BETA2026</td>
+            <td><span style="color:#10b981;font-weight:500;">启用</span></td>
+            <td style="font-size:12px;color:#374151;">0xC9D0...E1F2</td>
+            <td style="font-size:12px;color:#374151;">0xA3B4...C5D6</td>
+            <td>1.50%</td>
+            <td>0.80%</td>
+            <td>分销</td>
+            <td>李四（中介）</td>
+            <td>商务B</td>
+            <td>2026-03-05 14:30:00</td>
+            <td><span class="table-operate btn-view" onclick="openAgentDrawer('AG002')">查看详情</span></td>
+          </tr>
+          <tr>
+            <td>AG003</td>
+            <td>MER20260003</td>
+            <td>代理商Gamma</td>
+            <td><span style="background:#ecfdf5;color:#059669;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;">一级代理</span></td>
+            <td>
+              <div class="upgrade-cell">
+                <span style="background:#ecfdf5;color:#059669;border-radius:4px;padding:2px 8px;font-size:12px;">✓ 已达成</span>
+                <div class="upgrade-tooltip">
+                  <div class="tt-row"><span class="tt-label">充值量</span><span class="tt-val done">215,000 USDT</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">拓展二级代理</span><span class="tt-val done">12 人</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">达标周期</span><span class="tt-val done">2 个月</span></div>
+                </div>
+              </div>
+            </td>
+            <td>UID10000003</td>
+            <td>FP20003</td>
+            <td style="font-family:monospace;letter-spacing:1px;">GAMMA2026</td>
+            <td><span style="color:#10b981;font-weight:500;">启用</span></td>
+            <td style="font-size:12px;color:#374151;">0xB5C6...D7E8</td>
+            <td style="font-size:12px;color:#374151;">0xF9A0...B1C2</td>
+            <td>1.20%</td>
+            <td>0.50%</td>
+            <td>直签</td>
+            <td>商务A</td>
+            <td>商务A</td>
+            <td>2026-03-10 09:00:00</td>
+            <td><span class="table-operate btn-view" onclick="openAgentDrawer('AG003')">查看详情</span></td>
+          </tr>
+          <tr>
+            <td>AG004</td>
+            <td>MER20260004</td>
+            <td>代理商Delta</td>
+            <td><span style="background:#eff6ff;color:#3b82f6;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;">二级代理</span></td>
+            <td>
+              <div class="upgrade-cell">
+                <span style="background:#fff7ed;color:#f59e0b;border-radius:4px;padding:2px 8px;font-size:12px;">✗ 未达成</span>
+                <div class="upgrade-tooltip">
+                  <div class="tt-row"><span class="tt-label">充值量</span><span class="tt-val undone">12,000 / 100,000 USDT</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">拓展二级代理</span><span class="tt-val undone">0 / 5 人</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">达标周期</span><span class="tt-val undone">进行中（第 2 月）</span></div>
+                </div>
+              </div>
+            </td>
+            <td>UID10000004</td>
+            <td>FP20004</td>
+            <td style="font-family:monospace;letter-spacing:1px;">DELTA2026</td>
+            <td><span style="color:#6b7280;font-weight:500;">停用</span></td>
+            <td style="font-size:12px;color:#374151;">0xD3E4...F5A6</td>
+            <td style="font-size:12px;color:#374151;">0xB7C8...D9E0</td>
+            <td>1.80%</td>
+            <td>1.00%</td>
+            <td>分销</td>
+            <td>—</td>
+            <td>商务B</td>
+            <td>2026-03-15 16:00:00</td>
+            <td><span class="table-operate btn-view" onclick="openAgentDrawer('AG004')">查看详情</span></td>
+          </tr>
+          <tr>
+            <td>AG005</td>
+            <td>MER20260005</td>
+            <td>代理商Epsilon</td>
+            <td><span style="background:#eff6ff;color:#3b82f6;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600;">二级代理</span></td>
+            <td>
+              <div class="upgrade-cell">
+                <span style="background:#ecfdf5;color:#059669;border-radius:4px;padding:2px 8px;font-size:12px;">✓ 已达成</span>
+                <div class="upgrade-tooltip">
+                  <div class="tt-row"><span class="tt-label">充值量</span><span class="tt-val done">107,500 USDT</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">拓展二级代理</span><span class="tt-val done">6 人</span></div>
+                  <hr class="tt-divider">
+                  <div class="tt-row"><span class="tt-label">达标周期</span><span class="tt-val done">3 个月</span></div>
+                </div>
+              </div>
+            </td>
+            <td>UID10000005</td>
+            <td>FP20005</td>
+            <td style="font-family:monospace;letter-spacing:1px;">EPS2026</td>
+            <td><span style="color:#10b981;font-weight:500;">启用</span></td>
+            <td style="font-size:12px;color:#374151;">0xF1A2...B3C4</td>
+            <td style="font-size:12px;color:#374151;">0xD5E6...F7A8</td>
+            <td>1.50%</td>
+            <td>0.80%</td>
+            <td>直签</td>
+            <td>张三（中介）</td>
+            <td>商务C</td>
+            <td>2026-03-20 11:15:00</td>
+            <td><span class="table-operate btn-view" onclick="openAgentDrawer('AG005')">查看详情</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 分页 -->
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:#374151;background:#fff;padding:12px 16px;border-radius:0 0 8px 8px;">
+      <span>共 86 条</span>
+      <button class="btn btn-default" style="padding:4px 10px;font-size:13px;">«</button>
+      <button class="btn btn-primary" style="padding:4px 10px;font-size:13px;">1</button>
+      <button class="btn btn-default" style="padding:4px 10px;font-size:13px;">2</button>
+      <button class="btn btn-default" style="padding:4px 10px;font-size:13px;">3</button>
+      <button class="btn btn-default" style="padding:4px 10px;font-size:13px;">»</button>
+      <select style="padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;">
+        <option>10 条/页</option>
+        <option>20 条/页</option>
+        <option>50 条/页</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ========== 页面0: 代理商准入 ========== -->
+  <div class="page" id="page-agent-admission">
+    <div class="page-title">代理商准入</div>
+
+    <div class="search-bar">
+      <label>代理商：</label>
+      <input type="text" placeholder="请输入" style="width:180px;">
+      <button class="btn btn-default">重置</button>
+      <button class="btn btn-primary">查询</button>
+      <button class="btn btn-primary" onclick="openAdmissionModal()" style="margin-left:auto;">+ 新增代理商</button>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>代理商</th>
+            <th>联系人</th>
+            <th>联系人邮箱</th>
+            <th>联系人手机</th>
+            <th>代理商级别</th>
+            <th>代理商类型</th>
+            <th>推荐人</th>
+            <th>所属商务</th>
+            <th>公司名称</th>
+            <th>公司国家</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1001</td>
+            <td>代理商Alpha</td>
+            <td>王五</td>
+            <td>wangwu@example.com</td>
+            <td>+86 138****0001</td>
+            <td>一级代理</td>
+            <td>直签</td>
+            <td>中介：张三</td>
+            <td>商务A</td>
+            <td>Alpha 科技有限公司</td>
+            <td>中国香港</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"></div></td>
+            <td>
+              <span class="table-operate btn-view">查看</span>
+              <span class="table-operate">编辑</span>
+              <span class="table-operate" style="color:#ef4444;" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+          <tr>
+            <td>1002</td>
+            <td>代理商Beta</td>
+            <td>赵六</td>
+            <td>zhaoliu@example.com</td>
+            <td>+1 555****0002</td>
+            <td>二级代理</td>
+            <td>分销</td>
+            <td>代理商：代理商Alpha</td>
+            <td>商务B</td>
+            <td>Beta Solutions Ltd.</td>
+            <td>美国</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"></div></td>
+            <td>
+              <span class="table-operate btn-view">查看</span>
+              <span class="table-operate">编辑</span>
+              <span class="table-operate" style="color:#ef4444;" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== 页面1: 代理商规则管理 ========== -->
+  <div class="page active" id="page-agent-rule">
+    <div class="page-title">代理商规则管理</div>
+
+    <div class="search-bar">
+      <label>规则类型：</label>
+      <select>
+        <option>全部</option>
+        <option>升级规则</option>
+        <option>提成规则</option>
+      </select>
+      <label>规则状态：</label>
+      <select>
+        <option>全部</option>
+        <option>启用</option>
+        <option>停用</option>
+      </select>
+      <button class="btn btn-default">重置</button>
+      <button class="btn btn-primary">查询</button>
+      <div class="rule-select-box">
+        <button class="btn btn-primary" onclick="toggleRuleSelect()">+ 新增规则</button>
+        <div class="rule-select-dropdown" id="ruleDropdown">
+          <div onclick="openRuleModal(1)">升级规则</div>
+          <div onclick="openRuleModal(2)">提成规则</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>规则类型</th>
+            <th>适用代理级别</th>
+            <th>规则内容</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>升级规则</td>
+            <td>二级 → 一级</td>
+            <td>月充值100000 USDT，推荐5人(二级)，周期3月</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"></div></td>
+            <td>2026-04-01 08:30:25</td>
+            <td>
+              <span class="table-operate btn-view" onclick="viewRuleDetail(1)">查看</span>
+              <span class="table-operate">编辑</span>
+              <span class="table-operate" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>提成规则</td>
+            <td>一级代理商</td>
+            <td>实体卡，阶梯提成，充值提成10%；限制渠道：线下渠道不参与提成</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"></div></td>
+            <td>2026-04-01 10:15:36</td>
+            <td>
+              <span class="table-operate btn-view" onclick="viewRuleDetail(2)">查看</span>
+              <span class="table-operate">编辑</span>
+              <span class="table-operate" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== 页面2: 库存管理 ========== -->
+  <div class="page" id="page-white-card">
+    <div class="wc-title">库存管理</div>
+
+    <div class="tab-bar">
+      <div class="tab-item">库存管理</div>
+      <div class="tab-item active">白卡管理</div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-item">
+        <label>代理商ID：</label>
+        <input type="text" class="filter-input" placeholder="请输入">
+      </div>
+      <div class="filter-item">
+        <label>代理商级别：</label>
+        <select class="filter-select">
+          <option value="">全部</option>
+          <option value="1">一级</option>
+          <option value="2">二级</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>卡片渠道：</label>
+        <select class="filter-select">
+          <option value="">全部</option>
+          <option value="A">渠道A</option>
+          <option value="B">渠道B</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>卡片类型：</label>
+        <select class="filter-select">
+          <option value="">全部</option>
+          <option value="Visa">Visa</option>
+          <option value="Master">万事达</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>渠道卡名称：</label>
+        <select class="filter-select">
+          <option value="">全部</option>
+          <option>Visa国际普卡</option>
+          <option>Visa高端黑卡</option>
+          <option>Visa商务卡</option>
+          <option>万事达普通卡</option>
+          <option>万事达商务金卡</option>
+          <option>万事达白金卡</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>是否付款：</label>
+        <select class="filter-select">
+          <option value="">全部</option>
+          <option value="paid">已付款</option>
+          <option value="unpaid">未付款</option>
+        </select>
+      </div>
+      <button class="btn btn-default" style="height:36px;">重置</button>
+      <button class="btn btn-primary" style="height:36px;">查询</button>
+      <button class="btn btn-primary" style="height:36px;margin-left:auto;" onclick="openWcModal()">+ 新增白卡</button>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stats-card">
+        <div class="stats-label">代理商总数</div>
+        <div class="stats-value">26</div>
+      </div>
+      <div class="stats-card">
+        <div class="stats-label">白卡总数</div>
+        <div class="stats-value">1,580</div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>创建时间</th>
+            <th>订单号</th>
+            <th>代理商ID</th>
+            <th>代理商级别</th>
+            <th>代理商类型</th>
+            <th>卡片渠道</th>
+            <th>卡片类型</th>
+            <th>卡片名称</th>
+            <th>卡片数量</th>
+            <th>卡片单价(USDT)</th>
+            <th>卡片总价(USDT)</th>
+            <th>购卡时间</th>
+            <th>是否付款</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-04-03 10:20:30</td><td>ORD20260403001</td><td>A001</td><td>一级</td><td>直营代理</td>
+            <td>渠道A</td><td>Visa</td><td>Visa国际普卡</td><td>100</td><td>10.00</td><td>1000.00</td>
+            <td>2026-04-03 10:30:00</td><td><span class="tag tag-success">已付款</span></td>
+          </tr>
+          <tr>
+            <td>2026-04-03 09:10:20</td><td>ORD20260403002</td><td>A002</td><td>二级</td><td>分销代理</td>
+            <td>渠道B</td><td>万事达</td><td>万事达商务金卡</td><td>50</td><td>15.00</td><td>750.00</td>
+            <td>2026-04-03 09:20:00</td><td><span class="tag tag-warning">未付款</span></td>
+          </tr>
+          <tr>
+            <td>2026-04-03 08:30:15</td><td>ORD20260403003</td><td>A003</td><td>一级</td><td>直营代理</td>
+            <td>渠道A</td><td>Visa</td><td>Visa高端黑卡</td><td>20</td><td>50.00</td><td>1000.00</td>
+            <td>2026-04-03 08:40:00</td><td><span class="tag tag-success">已付款</span></td>
+          </tr>
+          <tr>
+            <td>2026-04-03 07:20:10</td><td>ORD20260403004</td><td>A004</td><td>二级</td><td>分销代理</td>
+            <td>渠道B</td><td>万事达</td><td>万事达普通卡</td><td>200</td><td>8.00</td><td>1600.00</td>
+            <td>2026-04-03 07:30:00</td><td><span class="tag tag-success">已付款</span></td>
+          </tr>
+          <tr>
+            <td>2026-04-03 06:10:05</td><td>ORD20260403005</td><td>A005</td><td>一级</td><td>直营代理</td>
+            <td>渠道A</td><td>Visa</td><td>Visa商务卡</td><td>80</td><td>12.00</td><td>960.00</td>
+            <td>2026-04-03 06:20:00</td><td><span class="tag tag-warning">未付款</span></td>
+          </tr>
+          <tr>
+            <td>2026-04-03 05:05:00</td><td>ORD20260403006</td><td>A006</td><td>二级</td><td>分销代理</td>
+            <td>渠道B</td><td>万事达</td><td>万事达白金卡</td><td>30</td><td>30.00</td><td>900.00</td>
+            <td>2026-04-03 05:15:00</td><td><span class="tag tag-success">已付款</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== 页面3: 统计中心 ========== -->
+  <div class="page" id="page-stats">
+    <div class="stats-breadcrumb">
+      <a href="#">首页</a> / <a href="#">统计中心</a> / 代理商提成统计
+    </div>
+
+    <div class="stats-tab-bar">
+      <div class="stats-tab active">代理商提成统计 ×</div>
+    </div>
+
+    <div class="search-area">
+      <div class="search-grid">
+        <div class="form-item">
+          <label>提成单据类型</label>
+          <select><option>全部</option><option>提成结算</option><option>提成退回</option></select>
+        </div>
+        <div class="form-item">
+          <label>代理商ID</label>
+          <input type="text" placeholder="请输入">
+        </div>
+        <div class="form-item">
+          <label>代理商名称</label>
+          <input type="text" placeholder="请输入">
+        </div>
+        <div class="form-item">
+          <label>代理商级别</label>
+          <select><option>全部</option><option>一级</option><option>二级</option><option>三级</option></select>
+        </div>
+        <div class="form-item">
+          <label>代理商类型</label>
+          <select><option>全部</option><option>直签</option><option>分销</option></select>
+        </div>
+        <div class="form-item">
+          <label>业务来源</label>
+          <select><option>全部</option><option>直属团队</option><option>下级代理</option></select>
+        </div>
+        <div class="form-item">
+          <label>业务类型</label>
+          <select><option>全部</option><option>开卡</option><option>充值</option><option>消费</option></select>
+        </div>
+        <div class="form-item">
+          <label>业务单号</label>
+          <input type="text" placeholder="请输入">
+        </div>
+        <div class="form-item">
+          <label>支付时间</label>
+          <input type="text" placeholder="开始时间 ~ 结束时间">
+        </div>
+        <div class="form-item">
+          <label>创建时间</label>
+          <input type="text" placeholder="开始时间 ~ 结束时间">
+        </div>
+        <div class="form-item">
+          <label>退款时间</label>
+          <input type="text" placeholder="开始时间 ~ 结束时间">
+        </div>
+        <div class="form-item">
+          <label>退款单号</label>
+          <input type="text" placeholder="请输入">
+        </div>
+        <div class="form-item">
+          <label>所属商务/中介</label>
+          <select><option>全部</option><option>商务A</option><option>中介B</option></select>
+        </div>
+      </div>
+      <div class="search-buttons">
+        <button class="btn btn-gray">重置</button>
+        <button class="btn btn-green">查询</button>
+      </div>
+    </div>
+
+    <div class="summary-area">
+      <div class="summary-card">
+        <div class="s-title">代理商总数</div>
+        <div class="s-value">1,256</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-title">预计提成总金额</div>
+        <div class="s-value">125,689.23 USDT</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-title">预计提成退回总金额</div>
+        <div class="s-value">8,921.56 USDT</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-title">预计应提成总额</div>
+        <div class="s-value">116,767.67 USDT</div>
+      </div>
+    </div>
+
+    <div class="list-area">
+      <div class="list-header">
+        <button class="btn btn-green">导出数据</button>
+        <div class="tip">数据汇总受查询条件影响</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>提成结算/退回时间</th>
+            <th>提成单号</th>
+            <th>提成单据类型</th>
+            <th>代理商ID</th>
+            <th>代理商名称</th>
+            <th>代理商级别</th>
+            <th>代理商类型</th>
+            <th>业务名称</th>
+            <th>业务来源</th>
+            <th>卡组织</th>
+            <th>卡渠道</th>
+            <th>卡名称</th>
+            <th>业务金额(USDT)</th>
+            <th>提成梯度</th>
+            <th>预计提成比例/金额</th>
+            <th>预计提成金额(USDT)</th>
+            <th>确认提成金额(USDT)</th>
+            <th>所属商务</th>
+            <th>所属中介</th>
+            <th>交易关联ID</th>
+            <th>交易时间</th>
+            <th>退款时间</th>
+            <th>关联订单/退款单</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-04-01 10:30:00</td>
+            <td>TC20260401001</td>
+            <td class="type-sale">提成结算</td>
+            <td>AG001</td><td>代理商A</td><td>一级</td><td>直签</td><td>开卡</td>
+            <td>直属团队</td><td>Visa</td><td>Reap</td><td>标准卡</td>
+            <td>1,000.00</td><td>梯度3</td><td>5.00%</td><td>50.00</td><td>50.00</td>
+            <td>商务1</td><td>中介1</td><td>TRADE001</td>
+            <td>2026-04-01 10:25:00</td><td>-</td><td>-</td>
+          </tr>
+          <tr>
+            <td>2026-04-01 11:15:00</td>
+            <td>TC20260401002</td>
+            <td class="type-refund">提成退回</td>
+            <td>AG002</td><td>代理商B</td><td>二级</td><td>分销</td><td>充值</td>
+            <td>下级代理</td><td>Mastercard</td><td>Straistx</td><td>企业卡</td>
+            <td>-500.00</td><td>梯度2</td><td>3.00%</td><td>-15.00</td><td>-</td>
+            <td>商务2</td><td>中介2</td><td>TRADE002</td>
+            <td>2026-04-01 11:00:00</td><td>2026-04-01 11:10:00</td><td>ORD20260401002</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span>每页显示</span>
+        <select><option>10</option><option>20</option><option>50</option><option>100</option></select>
+        <span>条，共1256条</span>
+        <a href="#">上一页</a>
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">...</a>
+        <a href="#">126</a>
+        <a href="#">下一页</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 页面4: 中介管理 ========== -->
+  <div class="page" id="page-broker">
+    <div style="padding:20px;">
+      <div style="font-size:14px;color:#6b7280;margin-bottom:20px;">
+        <a href="#" style="color:#374151;text-decoration:none;">首页</a>
+        <span style="margin:0 8px;">/</span>
+        <span>中介管理</span>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <div style="padding:8px 16px;border:1px solid #52c41a;border-radius:4px 4px 0 0;background:#52c41a;color:#fff;font-size:15px;">中介管理</div>
+      </div>
+
+      <!-- 搜索区 -->
+      <div style="background:#fff;padding:20px;border-radius:4px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="width:80px;text-align:right;font-size:14px;">中介姓名：</label>
+          <input type="text" placeholder="请输入" style="flex:1;padding:8px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;outline:none;">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="width:80px;text-align:right;font-size:14px;">手机号码：</label>
+          <input type="text" placeholder="请输入" style="flex:1;padding:8px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;outline:none;">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="width:80px;text-align:right;font-size:14px;">邮箱：</label>
+          <input type="text" placeholder="请输入" style="flex:1;padding:8px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;outline:none;">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="width:80px;text-align:right;font-size:14px;">创建时间：</label>
+          <input type="date" style="flex:1;padding:8px 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;outline:none;">
+          <span style="font-size:14px;color:#666;">至</span>
+          <input type="date" style="flex:1;padding:8px 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;outline:none;">
+        </div>
+        <div style="grid-column:1/-1;display:flex;gap:12px;justify-content:flex-end;">
+          <button class="btn btn-default">重置</button>
+          <button class="btn btn-primary">查询</button>
+        </div>
+      </div>
+
+      <!-- 表格区 -->
+      <div style="background:#fff;padding:20px;border-radius:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <button class="btn btn-success" onclick="openBrokerModal()">+ 新增中介</button>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">序号</th>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">中介姓名</th>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">手机号码</th>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">邮箱</th>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">创建时间</th>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">状态</th>
+              <th style="background:#fafafa;padding:12px;text-align:left;border-bottom:1px solid #e8e8e8;font-size:14px;font-weight:600;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">1</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">张三</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">138****1234</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">zhangsan@example.com</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">2026-04-03 10:00:00</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;color:#10b981;font-weight:500;">合作中</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">
+                <a href="#" style="color:#1677ff;margin-right:8px;font-size:14px;text-decoration:none;">编辑</a>
+                <a href="#" onclick="return confirmDelete(this)" style="color:#ff4d4f;margin-right:8px;font-size:14px;text-decoration:none;">删除</a>
+                <a href="#" onclick="return confirmTerminate(this)" style="color:#fa8c16;font-size:14px;text-decoration:none;">终止合作</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">2</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">李四</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">139****5678</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">lisi@example.com</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">2026-04-03 11:00:00</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;color:#10b981;font-weight:500;">合作中</td>
+              <td style="padding:12px;border-bottom:1px solid #e8e8e8;font-size:14px;">
+                <a href="#" style="color:#1677ff;margin-right:8px;font-size:14px;text-decoration:none;">编辑</a>
+                <a href="#" onclick="return confirmDelete(this)" style="color:#ff4d4f;margin-right:8px;font-size:14px;text-decoration:none;">删除</a>
+                <a href="#" onclick="return confirmTerminate(this)" style="color:#fa8c16;font-size:14px;text-decoration:none;">终止合作</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /page-broker -->
+
+  <!-- ========== 页面5: 商务提成规则 ========== -->
+  <div class="page" id="page-biz-rule">
+    <div class="page-title">商务提成规则</div>
+
+    <div class="search-bar">
+      <label>规则类型：</label>
+      <select>
+        <option>全部</option>
+        <option>卖卡提成</option>
+        <option>充值提成</option>
+      </select>
+      <label>规则状态：</label>
+      <select>
+        <option>全部</option>
+        <option>启用</option>
+        <option>停用</option>
+      </select>
+      <button class="btn btn-default">重置</button>
+      <button class="btn btn-primary">查询</button>
+      <div class="rule-select-box">
+        <button class="btn btn-primary" onclick="toggleBizSelect()">+ 新增规则</button>
+        <div class="rule-select-dropdown" id="bizDropdown">
+          <div onclick="openBizModal('sell')">卖卡提成</div>
+          <div onclick="openBizModal('recharge')">充值提成</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>规则类型</th>
+            <th>规则内容</th>
+            <th>适用渠道</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>卖卡提成</td>
+            <td>阶梯提成：1~100张→5U/张，101~500张→4.5U/张，500张以上→4U/张</td>
+            <td><span class="channel-badge">STX</span><span class="channel-badge">Reap</span></td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"></div></td>
+            <td>2026-04-01 09:00:00</td>
+            <td>
+              <span class="table-operate btn-view" onclick="viewBizDetail(1)">查看</span>
+              <span class="table-operate" onclick="openBizModal('sell',true)">编辑</span>
+              <span class="table-operate" style="color:#ef4444;" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>卖卡提成</td>
+            <td>阶梯提成：1~200张→6U/张，200张以上→5U/张</td>
+            <td><span class="channel-badge">STX</span></td>
+            <td><div class="switch" onclick="toggleSwitch(this)"></div></td>
+            <td>2026-04-02 10:30:00</td>
+            <td>
+              <span class="table-operate btn-view" onclick="viewBizDetail(2)">查看</span>
+              <span class="table-operate" onclick="openBizModal('sell',true)">编辑</span>
+              <span class="table-operate" style="color:#ef4444;" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>充值提成</td>
+            <td>充值总额 × 3.5%，每自然月结算一次</td>
+            <td>-</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"></div></td>
+            <td>2026-04-03 14:00:00</td>
+            <td>
+              <span class="table-operate btn-view" onclick="viewBizDetail(3)">查看</span>
+              <span class="table-operate" onclick="openBizModal('recharge',true)">编辑</span>
+              <span class="table-operate" style="color:#ef4444;" onclick="return confirmDelete(this)">删除</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main --><div class="modal-overlay" id="ruleModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="ruleModalTitle">新增规则</span>
+      <span class="modal-close" onclick="closeRuleModal()">×</span>
+    </div>
+    <div class="modal-body" id="ruleModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeRuleModal()">取消</button>
+      <button class="btn btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗：规则详情 ===== -->
+<div class="modal-overlay" id="ruleDetailModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>规则详情</span>
+      <span class="modal-close" onclick="closeRuleDetailModal()">×</span>
+    </div>
+    <div class="modal-body" id="ruleDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeRuleDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗：新增白卡 ===== -->
+<div class="modal-overlay" id="wcModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>新增白卡</span>
+      <span class="modal-close" onclick="closeWcModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-item-inline">
+        <label>代理商：</label>
+        <select><option value="">请选择代理商</option><option>代理商A001</option><option>代理商A002</option><option>代理商A003</option></select>
+      </div>
+      <div class="form-item-inline">
+        <label>卡片渠道：</label>
+        <select><option value="">请选择卡片渠道</option><option>渠道A</option><option>渠道B</option></select>
+      </div>
+      <div class="form-item-inline">
+        <label>卡片类型：</label>
+        <select><option value="">请选择卡片类型</option><option>Visa</option><option>万事达</option></select>
+      </div>
+      <div class="form-item-inline">
+        <label>渠道卡名称：</label>
+        <select><option value="">请选择卡名称</option><option>Visa国际普卡</option><option>Visa高端黑卡</option><option>Visa商务卡</option><option>万事达普通卡</option><option>万事达商务金卡</option><option>万事达白金卡</option></select>
+      </div>
+      <div class="form-item-inline">
+        <label>卡片数量：</label>
+        <input type="number" placeholder="请输入卡片数量" min="1">
+      </div>
+      <div class="form-item-inline">
+        <label>卡片单价(USDT)：</label>
+        <input type="number" placeholder="请输入卡片单价" min="0" step="0.01">
+      </div>
+      <div class="form-item-inline">
+        <label>购卡金额(USDT)：</label>
+        <input type="number" placeholder="自动计算" readonly>
+      </div>
+      <div class="form-item-inline">
+        <label>是否付款：</label>
+        <select><option value="paid">已付款</option><option value="unpaid">未付款</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeWcModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitWcAdd()">确认新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗：新增中介 ===== -->
+<!-- ===== 弹窗：代理商编辑（推荐人/所属商务） ===== -->
+<div class="modal-overlay" id="agentEditModal">
+  <div class="modal-box" style="width:480px;">
+    <div class="modal-header">
+      <span id="agentEditTitle">编辑代理商</span>
+      <span class="modal-close" onclick="closeAgentEditModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-item-inline" style="margin-bottom:16px;">
+        <label style="width:90px;">推荐人：</label>
+        <input type="text" id="agentEditReferrer" list="editReferrerList" placeholder="输入姓名联想" style="flex:1;">
+        <datalist id="editReferrerList">
+          <option value="张三（中介）">
+          <option value="李四（中介）">
+          <option value="商务A">
+          <option value="商务B">
+          <option value="商务C">
+        </datalist>
+      </div>
+      <div class="form-item-inline">
+        <label style="width:90px;">所属商务：</label>
+        <select id="agentEditBizOwner" style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;">
+          <option value="">请选择</option>
+          <option>商务A</option>
+          <option>商务B</option>
+          <option>商务C</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeAgentEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitAgentEdit()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="brokerModal">
+  <div class="modal-box" style="width:500px;">
+    <div class="modal-header">
+      <span>新增中介</span>
+      <span class="modal-close" onclick="closeBrokerModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-item-inline">
+        <label><span style="color:#ff4d4f;">*</span> 中介姓名：</label>
+        <input type="text" placeholder="请输入中介姓名">
+      </div>
+      <div class="form-item-inline">
+        <label><span style="color:#ff4d4f;">*</span> 邮箱：</label>
+        <input type="email" placeholder="请输入邮箱地址">
+      </div>
+      <div class="form-item-inline">
+        <label><span style="color:#ff4d4f;">*</span> 手机号码：</label>
+        <input type="tel" placeholder="请输入手机号码">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeBrokerModal()">取消</button>
+      <button class="btn btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗：商务提成规则 新增/编辑 ===== -->
+<div class="modal-overlay" id="bizRuleModal">
+  <div class="modal-box" style="width:640px;">
+    <div class="modal-header">
+      <span id="bizRuleModalTitle">新增卖卡提成规则</span>
+      <span class="modal-close" onclick="closeBizModal()">×</span>
+    </div>
+    <div class="modal-body" id="bizRuleModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeBizModal()">取消</button>
+      <button class="btn btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗：商务提成规则 查看详情 ===== -->
+<div class="modal-overlay" id="bizDetailModal">
+  <div class="modal-box" style="width:600px;">
+    <div class="modal-header">
+      <span>规则详情</span>
+      <span class="modal-close" onclick="document.getElementById('bizDetailModal').classList.remove('show')">×</span>
+    </div>
+    <div class="modal-body" id="bizDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="document.getElementById('bizDetailModal').classList.remove('show')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗：新增代理商 ===== -->
+<div class="modal-overlay" id="admissionModal">
+  <div class="modal-box" style="width:620px;">
+    <div class="modal-header">
+      <span id="admissionModalTitle">新增代理商</span>
+      <span class="modal-close" onclick="closeAdmissionModal()">×</span>
+    </div>
+    <div class="modal-body">
+
+      <!-- 代理商 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 代理商：</div>
+        <div class="adm-field">
+          <input type="text" placeholder="请输入代理商">
+        </div>
+      </div>
+
+      <!-- 联系人 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 联系人：</div>
+        <div class="adm-field">
+          <input type="text" placeholder="请输入联系人">
+        </div>
+      </div>
+
+      <!-- 联系人邮箱 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 联系人邮箱：</div>
+        <div class="adm-field">
+          <input type="email" placeholder="请输入联系人邮箱">
+        </div>
+      </div>
+
+      <!-- 联系人手机 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 联系人手机：</div>
+        <div class="adm-field">
+          <div class="phone-row">
+            <select class="cc-select">
+              <option value="+86">+86</option>
+              <option value="+1" selected>+1</option>
+              <option value="+44">+44</option>
+              <option value="+81">+81</option>
+              <option value="+852">+852</option>
+              <option value="+65">+65</option>
+              <option value="+971">+971</option>
+            </select>
+            <input type="tel" class="phone-input" placeholder="请输入联系人手机">
+          </div>
+        </div>
+      </div>
+
+      <!-- 公司名称 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 公司名称：</div>
+        <div class="adm-field">
+          <input type="text" placeholder="请输入公司名称">
+        </div>
+      </div>
+
+      <!-- 代理商级别 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 代理商级别：</div>
+        <div class="adm-field">
+          <div class="combo-wrap" id="combo-level">
+            <input type="text" class="combo-input" placeholder="请选择代理商级别" autocomplete="off"
+              oninput="filterCombo('combo-level',this.value)"
+              onfocus="openCombo('combo-level')"
+              onkeydown="comboKeyNav(event,'combo-level')">
+            <span class="combo-arrow">▾</span>
+            <div class="combo-dropdown" id="combo-level-dd"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 推荐人 -->
+      <div class="adm-row">
+        <div class="adm-label">推荐人：</div>
+        <div class="adm-field">
+          <div class="referrer-wrap">
+            <select class="referrer-type-sel" id="referrerType" onchange="onReferrerTypeChange()">
+              <option value="">类型</option>
+              <option value="broker">中介</option>
+              <option value="agent">代理商</option>
+            </select>
+            <div class="combo-wrap" id="combo-referrer" style="flex:1;">
+              <input type="text" class="combo-input" placeholder="请先选择类型" autocomplete="off"
+                id="referrerInput" disabled
+                oninput="filterCombo('combo-referrer',this.value)"
+                onfocus="openCombo('combo-referrer')"
+                onkeydown="comboKeyNav(event,'combo-referrer')">
+              <span class="combo-arrow">▾</span>
+              <div class="combo-dropdown" id="combo-referrer-dd"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商务（非必填） -->
+      <div class="adm-row">
+        <div class="adm-label">商务：</div>
+        <div class="adm-field">
+          <div class="combo-wrap" id="combo-biz">
+            <input type="text" class="combo-input" placeholder="请选择或搜索商务" autocomplete="off"
+              oninput="filterCombo('combo-biz',this.value)"
+              onfocus="openCombo('combo-biz')"
+              onkeydown="comboKeyNav(event,'combo-biz')">
+            <span class="combo-arrow">▾</span>
+            <div class="combo-dropdown" id="combo-biz-dd"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 代理商类型 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 代理商类型：</div>
+        <div class="adm-field">
+          <select>
+            <option value="">请选择代理商类型</option>
+            <option>直签</option>
+            <option>分销</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 公司国家 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 公司国家：</div>
+        <div class="adm-field">
+          <div class="combo-wrap" id="combo-country">
+            <input type="text" class="combo-input" placeholder="请选择公司国家" autocomplete="off"
+              oninput="filterCombo('combo-country',this.value)"
+              onfocus="openCombo('combo-country')"
+              onkeydown="comboKeyNav(event,'combo-country')">
+            <span class="combo-arrow">▾</span>
+            <div class="combo-dropdown" id="combo-country-dd"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 公司地址 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 公司地址：</div>
+        <div class="adm-field">
+          <input type="text" placeholder="请输入公司地址">
+        </div>
+      </div>
+
+      <!-- 营业执照 -->
+      <div class="adm-row">
+        <div class="adm-label"><span class="req">*</span> 营业执照：</div>
+        <div class="adm-field">
+          <div class="upload-box" onclick="this.nextElementSibling.click()">＋</div>
+          <input type="file" accept="image/*,.pdf" style="display:none;">
+          <div class="upload-tip">支持 JPG / PNG / PDF，不超过 10MB</div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeAdmissionModal()">取消</button>
+      <button class="btn btn-primary">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 右抽屉：代理商详情 ===== -->
+<div class="drawer-mask" id="agentDrawerMask"></div>
+<div class="drawer" id="agentDrawer">
+  <div class="drawer-header">
+    <div class="dh-title" id="agentDrawerTitle">代理商详情</div>
+    <div class="dh-close" onclick="closeAgentDrawer()">×</div>
+  </div>
+  <div class="drawer-body" id="agentDrawerBody"></div>
+</div>
+
+<script>
+  // ===== 导航切换 =====
+  const pageMap = {
+    'agent-list':     { breadcrumb: '首页 / 代理商管理 / 代理商管理' },
+    'agent-admission':{ breadcrumb: '首页 / 代理商管理 / 代理商准入' },
+    'agent-rule': { breadcrumb: '首页 / 代理商管理 / 代理商规则管理' },
+    'white-card': { breadcrumb: '首页 / 卡片管理 / 库存管理' },
+    'stats':      { breadcrumb: '首页 / 统计中心 / 代理商提成统计' },
+    'broker':     { breadcrumb: '首页 / 内部管理 / 中介管理' },
+    'biz-rule':   { breadcrumb: '首页 / 内部管理 / 商务提成规则' }
+  };
+
+  function switchPage(pageId, el) {
+    // 隐藏所有页面
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
+    // 展示目标页
+    document.getElementById('page-' + pageId).classList.add('active');
+    el.classList.add('active');
+    document.getElementById('topbar').textContent = pageMap[pageId].breadcrumb;
+    // 展开父菜单
+    const sub = el.parentElement;
+    sub.classList.add('show');
+    const title = sub.previousElementSibling;
+    if (title) title.classList.add('open');
+  }
+
+  function toggleGroup(titleEl) {
+    const sub = titleEl.nextElementSibling;
+    const isOpen = sub.classList.contains('show');
+    sub.classList.toggle('show', !isOpen);
+    titleEl.classList.toggle('open', !isOpen);
+  }
+
+  // ===== 开关 =====
+  function toggleSwitch(el) { el.classList.toggle('on'); }
+
+  // ===== 规则下拉 =====
+  function toggleRuleSelect() {
+    const d = document.getElementById('ruleDropdown');
+    d.style.display = d.style.display === 'block' ? 'none' : 'block';
+  }
+  document.addEventListener('click', function(e) {
+    const box = document.querySelector('.rule-select-box');
+    if (box && !box.contains(e.target)) {
+      document.getElementById('ruleDropdown').style.display = 'none';
+    }
+  });
+
+  // ===== 规则弹窗 =====
+  function closeRuleModal() { document.getElementById('ruleModal').classList.remove('show'); }
+  function closeRuleDetailModal() { document.getElementById('ruleDetailModal').classList.remove('show'); }
+
+  const statusHtml = `
+    <div class="form-item-row">
+      <label>状态</label>
+      <select><option value="1" selected>启用</option><option value="0">停用</option></select>
+    </div>`;
+
+  function addLadderItem(boxId) {
+    const box = document.getElementById(boxId);
+    const div = document.createElement('div');
+    div.className = 'step-item';
+    const isFx = boxId === 'fxLadderBox';
+    div.innerHTML = `
+      <input type="number" placeholder="起始金额">
+      <span class="range-split">~</span>
+      <input type="number" placeholder="结束金额">
+      <input type="text" placeholder="${isFx ? '请输入提成比例' : '请输入成本价'}">`;
+    box.appendChild(div);
+  }
+
+  function changeCommissionType(type) {
+    document.getElementById('ladderBoxWrap').style.display = type === 'ladder' ? 'block' : 'none';
+    document.getElementById('fixedBoxWrap').style.display  = type === 'fixed'  ? 'block' : 'none';
+  }
+
+  function toggleLevelItems() {
+    const level = document.getElementById('agentLevel').value;
+    const show = level === '一级代理商';
+    document.getElementById('subRecharge').style.display = show ? 'block' : 'none';
+    document.getElementById('subAfter').style.display    = show ? 'block' : 'none';
+  }
+
+  function openRuleModal(type) {
+    document.getElementById('ruleDropdown').style.display = 'none';
+    const title = document.getElementById('ruleModalTitle');
+    const body  = document.getElementById('ruleModalBody');
+    let html = '';
+
+    if (type === 1) {
+      title.innerText = '新增升级规则';
+      html = `
+        <div class="form-item-row"><label>目标代理商级别</label><select><option>一级代理商</option></select></div>
+        <div class="form-item-row"><label>原代理商级别</label><select><option>二级代理商</option></select></div>
+        <div class="form-item-row">
+          <label>充值量</label>
+          <div class="input-with-unit"><input type="number" placeholder="请输入"><span class="input-unit">月/USDT</span></div>
+        </div>
+        <div class="form-row-flex" style="margin-bottom:14px;">
+          <div class="form-item-row"><label>推荐代理级别</label><select><option>一级代理商</option><option>二级代理商</option></select></div>
+          <div class="form-item-row"><label>推荐代理数量</label><input type="number" placeholder="请输入"></div>
+        </div>
+        <div class="form-item-row">
+          <label>达标周期</label>
+          <div class="input-with-unit"><input type="number" placeholder="请输入"><span class="input-unit">月</span></div>
+        </div>
+        ${statusHtml}`;
+    } else if (type === 2) {
+      title.innerText = '新增提成规则';
+      html = `
+        <div class="form-item-row">
+          <label>适用代理商级别</label>
+          <select id="agentLevel" onchange="toggleLevelItems()"><option>一级代理商</option><option>二级代理商</option></select>
+        </div>
+
+        <!-- ── 开卡提成 ── -->
+        <div class="biz-block">
+          <div class="biz-block-header" onclick="toggleBizBlock(this)">
+            <div class="biz-block-title">🃏 开卡提成</div>
+            <div class="biz-block-toggle"><span class="biz-arrow">▾</span></div>
+          </div>
+          <div class="biz-block-body">
+            <div class="biz-channel-row">
+              <span class="channel-hint">参与该业务提成的渠道（未勾选渠道不产生提成）</span>
+              <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" name="cardChannel" value="Reap" checked><label>Reap</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="cardChannel" value="Straistx" checked><label>Straistx</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="cardChannel" value="Passto"><label>Passto</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="cardChannel" value="Coda"><label>Coda</label></div>
+              </div>
+            </div>
+            <div class="form-item-row" style="margin-bottom:8px;">
+              <label>卡片类型</label>
+              <div class="card-type-box">
+                <div class="card-type-item"><input type="radio" name="cardType" id="cardReal" checked><label for="cardReal">实体卡</label></div>
+                <div class="card-type-item"><input type="radio" name="cardType" id="cardVirtual"><label for="cardVirtual">虚拟卡</label></div>
+              </div>
+            </div>
+            <div class="form-item-row" style="margin-bottom:8px;">
+              <label>提成计算方式</label>
+              <select onchange="changeCommissionType(this.value)"><option value="ladder">阶梯提成</option><option value="fixed">固定提成</option></select>
+            </div>
+            <div id="ladderBoxWrap">
+              <label style="font-size:13px;color:#6b7280;">阶梯范围配置</label>
+              <div class="ladder-box" id="ladderBox">
+                <div class="step-item">
+                  <input type="number" placeholder="起始开卡数">
+                  <span class="range-split">~</span>
+                  <input type="number" placeholder="结束开卡数">
+                  <span style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;background:#f9fafb;color:#374151;white-space:nowrap;">按金额提成</span>
+                  <input type="number" placeholder="请输入成本价">
+                </div>
+              </div>
+              <button type="button" class="btn-sm-add" onclick="addLadderItem('ladderBox')" style="margin-top:6px;">+ 添加阶梯</button>
+              <div class="rule-tip">示例：1~100张 → 5 USDT/张 或 2%</div>
+            </div>
+            <div id="fixedBoxWrap" style="display:none;">
+              <label style="font-size:13px;color:#6b7280;">固定提成</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select id="fixedUnitType" onchange="toggleFixedUnit()" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;width:auto;">
+                  <option value="usdt">按金额 (USDT/张)</option>
+                  <option value="pct">按比例 (%)</option>
+                </select>
+                <div class="input-with-unit" style="flex:1;">
+                  <input type="number" placeholder="请输入">
+                  <span class="input-unit" id="fixedUnit">USDT/张</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 充值提成 ── -->
+        <div class="biz-block">
+          <div class="biz-block-header" onclick="toggleBizBlock(this)">
+            <div class="biz-block-title">💳 充值提成</div>
+            <div class="biz-block-toggle"><span class="biz-arrow">▾</span></div>
+          </div>
+          <div class="biz-block-body">
+            <div class="biz-channel-row">
+              <span class="channel-hint">参与该业务提成的渠道</span>
+              <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" name="rechargeChannel" value="Reap" checked><label>Reap</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="rechargeChannel" value="Straistx" checked><label>Straistx</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="rechargeChannel" value="Passto" checked><label>Passto</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="rechargeChannel" value="Coda"><label>Coda</label></div>
+              </div>
+            </div>
+            <div class="form-item-row">
+              <label>直属充值提成 <span style="font-size:12px;color:#6b7280;font-weight:400;">提成金额 = 充值金额 × 提成比例</span></label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;background:#f9fafb;color:#374151;white-space:nowrap;">按比例</span>
+                <div class="input-with-unit" style="flex:1;"><input type="text" placeholder="请输入"><span class="input-unit">%</span></div>
+              </div>
+            </div>
+            <div id="subRecharge" class="form-item-row">
+              <label>下一级代理充值提成 <span style="font-size:12px;color:#9ca3af;">（仅一级可设置）</span></label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;background:#f9fafb;color:#374151;white-space:nowrap;">按比例</span>
+                <div class="input-with-unit" style="flex:1;"><input type="text" placeholder="请输入"><span class="input-unit">%</span></div>
+              </div>
+            </div>
+            <div id="subAfter" class="form-item-row" style="margin-bottom:0;">
+              <label>下一级升级后持续提成 <span style="font-size:12px;color:#9ca3af;">（仅一级可设置）</span></label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;background:#f9fafb;color:#374151;white-space:nowrap;">按比例</span>
+                <div class="input-with-unit" style="flex:1;"><input type="text" placeholder="请输入"><span class="input-unit">%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── FX消费提成 ── -->
+        <div class="biz-block">
+          <div class="biz-block-header" onclick="toggleBizBlock(this)">
+            <div class="biz-block-title">💱 FX消费提成</div>
+            <div class="biz-block-toggle"><span class="biz-arrow">▾</span></div>
+          </div>
+          <div class="biz-block-body">
+            <div class="biz-channel-row">
+              <span class="channel-hint">参与该业务提成的渠道</span>
+              <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" name="fxChannel" value="Reap"><label>Reap</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="fxChannel" value="Straistx" checked><label>Straistx</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="fxChannel" value="Passto"><label>Passto</label></div>
+                <div class="checkbox-item"><input type="checkbox" name="fxChannel" value="Coda"><label>Coda</label></div>
+              </div>
+            </div>
+            <div class="form-item-row" style="margin-bottom:0;">
+              <label>阶梯范围配置</label>
+              <div class="ladder-box" id="fxLadderBox">
+                <div class="step-item">
+                  <input type="number" placeholder="起始消费(USDT)">
+                  <span class="range-split">~</span>
+                  <input type="number" placeholder="结束消费(USDT)">
+                  <span style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;background:#f9fafb;color:#374151;white-space:nowrap;">按比例</span>
+                  <input type="number" placeholder="请输入提成比例">
+                </div>
+              </div>
+              <button type="button" class="btn-sm-add" onclick="addLadderItem('fxLadderBox')" style="margin-top:6px;">+ 添加阶梯</button>
+              <div class="rule-tip">示例：0~1000 USDT → 0.5% 或 2 USDT</div>
+            </div>
+          </div>
+        </div>
+
+        ${statusHtml}`;
+    }
+
+    body.innerHTML = html;
+    document.getElementById('ruleModal').classList.add('show');
+    if (type === 2) toggleLevelItems();
+  }
+
+  function viewRuleDetail(id) {
+    const body = document.getElementById('ruleDetailBody');
+    const details = {
+      1: [['规则类型','升级规则'],['适用级别','二级 → 一级'],['充值量要求','100000 月/USDT'],['推荐代理级别','二级代理商'],['推荐代理数量','5人'],['达标周期','3月'],['状态','启用']],
+      2: [['规则类型','提成规则'],['适用级别','一级代理商'],['卡片类型','实体卡'],['提成方式','阶梯提成'],['直属充值提成','10%'],['下一级充值提成','5%'],['升级后持续提成','3%'],['FX消费提成','阶梯范围配置'],['状态','启用']],
+      3: [['规则类型','提成限制规则'],['适用级别','全级别'],['限制业务','开卡、充值、FX消费'],['限制渠道','Reap、Straistx、Passto'],['状态','停用']],
+      4: [['规则类型','提成发放规则'],['适用级别','全级别'],['最低发放','50 USDT'],['发放说明','低于该金额不发放'],['状态','启用']]
+    };
+    body.innerHTML = (details[id] || []).map(([k,v]) =>
+      `<div class="detail-item"><span class="detail-label">${k}：</span>${v}</div>`
+    ).join('');
+    document.getElementById('ruleDetailModal').classList.add('show');
+  }
+
+  // ===== 白卡弹窗 =====
+  function openWcModal()  { document.getElementById('wcModal').classList.add('show'); }
+  function closeWcModal() { document.getElementById('wcModal').classList.remove('show'); }
+  function submitWcAdd()  { alert('新增白卡成功！'); closeWcModal(); }
+
+  // ===== 中介弹窗 =====
+  function openBrokerModal()  { document.getElementById('brokerModal').classList.add('show'); }
+  function closeBrokerModal() { document.getElementById('brokerModal').classList.remove('show'); }
+
+  // 推荐人联动：根据类型切换候选人
+  const REFERRER_OPTIONS = {
+    broker: ['张三', '李四', '王五'],
+    biz:    ['商务A', '商务B', '商务C'],
+  };
+  function updateReferrerOptions() {
+    const type = document.getElementById('referrerType').value;
+    const dl   = document.getElementById('referrerList');
+    dl.innerHTML = '';
+    (REFERRER_OPTIONS[type] || []).forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n;
+      dl.appendChild(opt);
+    });
+    document.getElementById('referrerSearch').value = '';
+    document.getElementById('referrerSearch').placeholder = type ? '输入姓名联想' : '请先选择类型';
+  }
+
+  // 固定提成单位切换
+  function toggleFixedUnit() {
+    const v = document.getElementById('fixedUnitType').value;
+    const u = document.getElementById('fixedUnit');
+    if (u) u.textContent = v === 'pct' ? '%' : 'USDT/张';
+  }
+  // 阶梯中比例/金额单位辅助（无需额外逻辑，select已inline处理）
+  function toggleAmtPctUnit(sel) {}
+
+  function confirmDelete(el) {
+    if (confirm('确认删除该记录？删除后不可恢复。')) {
+      el.closest('tr').remove();
+    }
+    return false;
+  }
+
+  function toggleBizBlock(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.biz-arrow');
+    const isHidden = body.style.display === 'none';
+    body.style.display = isHidden ? 'block' : 'none';
+    if (arrow) arrow.textContent = isHidden ? '▾' : '▸';
+  }
+
+  function confirmTerminate(el) {
+    if (confirm('确认终止与该中介的合作？此操作不可恢复。')) {
+      const row = el.closest('tr');
+      const statusCell = row.cells[5];
+      statusCell.textContent = '终止合作';
+      statusCell.style.color = '#ff4d4f';
+      statusCell.style.fontWeight = '500';
+      el.textContent = '已终止';
+      el.style.color = '#9ca3af';
+      el.onclick = null;
+    }
+    return false;
+  }
+
+  // ===== 商务提成规则 下拉新增 =====
+  function toggleBizSelect() {
+    const d = document.getElementById('bizDropdown');
+    d.style.display = d.style.display === 'block' ? 'none' : 'block';
+  }
+  document.addEventListener('click', function(e) {
+    // 关闭商务规则下拉（复用已有的点击外部关闭逻辑）
+    const bizBox = document.querySelector('#page-biz-rule .rule-select-box');
+    if (bizBox && !bizBox.contains(e.target)) {
+      const dd = document.getElementById('bizDropdown');
+      if (dd) dd.style.display = 'none';
+    }
+  });
+
+  // ===== 商务提成规则 查看详情 =====
+  const bizDetails = {
+    1: {
+      type: '卖卡提成',
+      rows: [
+        ['规则类型', '卖卡提成'],
+        ['提成方式', '阶梯提成（按月累计开卡数量）'],
+        ['适用渠道', 'STX、Reap'],
+        ['阶梯配置', '1~100张 → 5 USDT/张<br>101~500张 → 4.5 USDT/张<br>500张以上 → 4 USDT/张'],
+        ['状态', '启用'],
+        ['创建时间', '2026-04-01 09:00:00'],
+      ]
+    },
+    2: {
+      type: '卖卡提成',
+      rows: [
+        ['规则类型', '卖卡提成'],
+        ['提成方式', '阶梯提成（按月累计开卡数量）'],
+        ['适用渠道', 'STX'],
+        ['阶梯配置', '1~200张 → 6 USDT/张<br>200张以上 → 5 USDT/张'],
+        ['状态', '停用'],
+        ['创建时间', '2026-04-02 10:30:00'],
+      ]
+    },
+    3: {
+      type: '充值提成',
+      rows: [
+        ['规则类型', '充值提成'],
+        ['提成计算基础', '充值总额'],
+        ['提成比例', '3.5%'],
+        ['结算周期', '每自然月结算一次'],
+        ['规则说明', '商务提成 = 充值总额 × 3.5%，每自然月结算一次'],
+        ['状态', '启用'],
+        ['创建时间', '2026-04-03 14:00:00'],
+      ]
+    }
+  };
+
+  function viewBizDetail(id) {
+    const data = bizDetails[id];
+    if (!data) return;
+    document.getElementById('bizDetailBody').innerHTML =
+      data.rows.map(([k, v]) =>
+        `<div class="detail-item"><span class="detail-label">${k}：</span>${v}</div>`
+      ).join('');
+    document.getElementById('bizDetailModal').classList.add('show');
+  }
+
+  function addSellLadderRow(containerId) {
+    const box = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'ladder-row';
+    row.innerHTML = `
+      <input type="number" placeholder="起始数量" min="0">
+      <span class="unit">~</span>
+      <input type="number" placeholder="结束数量（不填=不限）" min="0" style="width:160px;">
+      <span class="unit">张 →</span>
+      <input type="number" placeholder="提成单价" min="0" step="0.01">
+      <span class="unit">USDT/张</span>
+      <button type="button" class="del-btn" onclick="this.parentElement.remove()">×</button>`;
+    box.appendChild(row);
+  }
+
+  function openBizModal(type, isEdit) {
+    const title = document.getElementById('bizRuleModalTitle');
+    const body = document.getElementById('bizRuleModalBody');
+
+    if (type === 'sell') {
+      title.innerText = isEdit ? '编辑卖卡提成规则' : '新增卖卡提成规则';
+      body.innerHTML = `
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">
+            <span style="color:#ef4444;">*</span> 适用渠道
+            <span style="font-size:12px;color:#9ca3af;margin-left:6px;">（可多选，未来渠道可继续添加）</span>
+          </label>
+          <div class="channel-checkboxes">
+            <label class="channel-tag">
+              <input type="checkbox" name="bizChannel" value="STX" ${isEdit ? 'checked' : ''}> STX
+            </label>
+            <label class="channel-tag">
+              <input type="checkbox" name="bizChannel" value="Reap" ${isEdit ? 'checked' : ''}> Reap
+            </label>
+            <label class="channel-tag">
+              <input type="checkbox" name="bizChannel" value="Passto"> Passto
+            </label>
+            <!-- 未来可继续追加渠道 -->
+          </div>
+          <div class="rule-tip" style="margin-top:6px;">选中的渠道下的卖卡业务将按此规则计算商务提成</div>
+        </div>
+
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">
+            <span style="color:#ef4444;">*</span> 阶梯提成配置
+            <span style="font-size:12px;color:#9ca3af;margin-left:6px;">（按月累计开卡数量匹配阶梯）</span>
+          </label>
+          <div class="ladder-section" id="sellLadderBox">
+            <div class="ladder-row">
+              <input type="number" placeholder="起始数量" min="0" value="${isEdit ? '1' : ''}">
+              <span class="unit">~</span>
+              <input type="number" placeholder="结束数量（不填=不限）" min="0" style="width:160px;" value="${isEdit ? '100' : ''}">
+              <span class="unit">张 →</span>
+              <input type="number" placeholder="提成单价" min="0" step="0.01" value="${isEdit ? '5' : ''}">
+              <span class="unit">USDT/张</span>
+              <button type="button" class="del-btn" onclick="this.parentElement.remove()">×</button>
+            </div>
+            ${isEdit ? `
+            <div class="ladder-row">
+              <input type="number" value="101" min="0">
+              <span class="unit">~</span>
+              <input type="number" value="500" style="width:160px;">
+              <span class="unit">张 →</span>
+              <input type="number" value="4.5" step="0.01">
+              <span class="unit">USDT/张</span>
+              <button type="button" class="del-btn" onclick="this.parentElement.remove()">×</button>
+            </div>` : ''}
+          </div>
+          <button type="button" class="btn-sm-add" style="margin-top:8px;" onclick="addSellLadderRow('sellLadderBox')">+ 添加阶梯</button>
+          <div class="rule-tip" style="margin-top:6px;">最后一条阶梯"结束数量"留空表示"X张以上"；阶梯不可重叠</div>
+        </div>
+
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">状态</label>
+          <select style="width:160px;padding:7px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;">
+            <option value="1" selected>启用</option>
+            <option value="0">停用</option>
+          </select>
+        </div>`;
+    } else {
+      // 充值提成
+      title.innerText = isEdit ? '编辑充值提成规则' : '新增充值提成规则';
+      body.innerHTML = `
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#92400e;">
+          充值提成按照商务名下代理商的<strong>充值总额</strong>计算，公式：提成 = 充值总额 × 提成比例
+        </div>
+
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">
+            <span style="color:#ef4444;">*</span> 提成比例（%）
+          </label>
+          <div class="input-with-unit">
+            <input type="number" placeholder="请输入" min="0" max="100" step="0.01"
+              style="width:160px;padding:8px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;"
+              value="${isEdit ? '3.5' : ''}">
+            <span class="input-unit">%</span>
+          </div>
+          <div class="rule-tip" style="margin-top:6px;">例：填写 3.5，则商务提成 = 充值总额 × 3.5%</div>
+        </div>
+
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">结算周期</label>
+          <select style="width:200px;padding:7px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;">
+            <option selected>每自然月结算一次</option>
+            <option>每季度结算一次</option>
+            <option>手动触发结算</option>
+          </select>
+        </div>
+
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">备注说明</label>
+          <textarea placeholder="选填，描述该规则的适用场景或注意事项"
+            style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;resize:vertical;min-height:64px;"
+          >${isEdit ? '商务提成 = 充值总额 × 3.5%，每自然月结算一次' : ''}</textarea>
+        </div>
+
+        <div class="form-item-row">
+          <label style="font-size:14px;color:#374151;display:block;margin-bottom:6px;">状态</label>
+          <select style="width:160px;padding:7px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;">
+            <option value="1" selected>启用</option>
+            <option value="0">停用</option>
+          </select>
+        </div>`;
+    }
+
+    document.getElementById('bizRuleModal').classList.add('show');
+  }
+
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  // ===================================================
+  //  代理商准入 — 弹窗
+  // ===================================================
+  function openAdmissionModal() {
+    document.getElementById('admissionModal').classList.add('show');
+    // 初始化各 combo
+    renderCombo('combo-country', COMBO_DATA['combo-country'], '');
+    renderCombo('combo-level',   COMBO_DATA['combo-level'],   '');
+    renderCombo('combo-biz',     COMBO_DATA['combo-biz'],     '');
+    document.getElementById('referrerType').value = '';
+    const ri = document.getElementById('referrerInput');
+    ri.disabled = true;
+    ri.placeholder = '请先选择类型';
+    ri.value = '';
+    renderCombo('combo-referrer', [], '');
+  }
+  function closeAdmissionModal() {
+    document.getElementById('admissionModal').classList.remove('show');
+  }
+
+  // ===================================================
+  //  Combobox 数据源
+  // ===================================================
+  const COMBO_DATA = {
+    'combo-country': ['中国大陆','中国香港','中国台湾','美国','英国','新加坡','日本','韩国','澳大利亚','阿联酋','德国','法国','加拿大','印度','巴西'],
+    'combo-level':   ['一级代理','二级代理'],
+    'combo-biz':     ['商务A','商务B','商务C','商务D'],
+    'combo-referrer-broker': ['张三（中介）','李四（中介）','王五（中介）','赵六（中介）'],
+    'combo-referrer-agent':  ['代理商Alpha','代理商Beta','代理商Gamma','代理商Delta'],
+  };
+
+  // ===================================================
+  //  Combobox 渲染 & 交互
+  // ===================================================
+  function renderCombo(wrapId, options, keyword) {
+    const dd = document.getElementById(wrapId + '-dd');
+    if (!dd) return;
+    const filtered = keyword
+      ? options.filter(o => o.toLowerCase().includes(keyword.toLowerCase()))
+      : options;
+    if (filtered.length === 0) {
+      dd.innerHTML = '<div class="combo-option no-result">无匹配结果</div>';
+    } else {
+      dd.innerHTML = filtered.map((o, i) =>
+        `<div class="combo-option" data-val="${o}" data-idx="${i}"
+          onmousedown="selectComboOption('${wrapId}','${o}')">${o}</div>`
+      ).join('');
+    }
+  }
+
+  function openCombo(wrapId) {
+    // 关闭其他
+    document.querySelectorAll('.combo-dropdown').forEach(d => {
+      if (d.id !== wrapId + '-dd') d.classList.remove('open');
+    });
+    const dd = document.getElementById(wrapId + '-dd');
+    if (!dd) return;
+    const wrap = document.getElementById(wrapId);
+    const input = wrap ? wrap.querySelector('.combo-input') : null;
+    renderCombo(wrapId, COMBO_DATA[wrapId] || [], input ? input.value : '');
+
+    // 计算 fixed 定位坐标，使下拉贴着 input 底部展开，不受 overflow 裁切
+    if (wrap) {
+      const rect = wrap.getBoundingClientRect();
+      dd.style.left  = rect.left + 'px';
+      dd.style.width = rect.width + 'px';
+      // 如果下方空间不足则向上展开
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const ddH = Math.min(220, dd.scrollHeight || 220);
+      if (spaceBelow < ddH + 8 && rect.top > ddH + 8) {
+        dd.style.top    = '';
+        dd.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+      } else {
+        dd.style.bottom = '';
+        dd.style.top    = (rect.bottom + 4) + 'px';
+      }
+    }
+    dd.classList.add('open');
+  }
+
+  function filterCombo(wrapId, val) {
+    const dd = document.getElementById(wrapId + '-dd');
+    if (!dd) return;
+    renderCombo(wrapId, COMBO_DATA[wrapId] || [], val);
+    // 保持定位坐标（首次 oninput 时 dropdown 可能还未 open，借 openCombo 补上）
+    if (!dd.classList.contains('open')) {
+      openCombo(wrapId);
+    }
+    dd.classList.add('open');
+  }
+
+  function selectComboOption(wrapId, val) {
+    const input = document.querySelector(`#${wrapId} .combo-input`);
+    if (input) input.value = val;
+    const dd = document.getElementById(wrapId + '-dd');
+    if (dd) dd.classList.remove('open');
+  }
+
+  // 键盘导航（上/下/Enter/Esc）
+  function comboKeyNav(e, wrapId) {
+    const dd = document.getElementById(wrapId + '-dd');
+    if (!dd || !dd.classList.contains('open')) return;
+    const opts = Array.from(dd.querySelectorAll('.combo-option:not(.no-result)'));
+    const cur = dd.querySelector('.combo-option.focused');
+    let idx = cur ? opts.indexOf(cur) : -1;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (cur) cur.classList.remove('focused');
+      idx = (idx + 1) % opts.length;
+      opts[idx].classList.add('focused');
+      opts[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (cur) cur.classList.remove('focused');
+      idx = (idx - 1 + opts.length) % opts.length;
+      opts[idx].classList.add('focused');
+      opts[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      if (cur) { selectComboOption(wrapId, cur.getAttribute('data-val')); }
+    } else if (e.key === 'Escape') {
+      dd.classList.remove('open');
+    }
+  }
+
+  // 点击外部关闭所有 combo
+  document.addEventListener('click', function(e) {
+    document.querySelectorAll('.combo-wrap').forEach(wrap => {
+      if (!wrap.contains(e.target)) {
+        const dd = wrap.querySelector('.combo-dropdown');
+        if (dd) dd.classList.remove('open');
+      }
+    });
+  });
+
+  // ===================================================
+  //  推荐人 — 切换类型后重置 combo 数据
+  // ===================================================
+  function onReferrerTypeChange() {
+    const type = document.getElementById('referrerType').value;
+    const input = document.getElementById('referrerInput');
+    const dd = document.getElementById('combo-referrer-dd');
+    input.value = '';
+    if (!type) {
+      input.disabled = true;
+      input.placeholder = '请先选择类型';
+      COMBO_DATA['combo-referrer'] = [];
+    } else {
+      input.disabled = false;
+      input.placeholder = type === 'broker' ? '搜索中介姓名' : '搜索代理商名称';
+      COMBO_DATA['combo-referrer'] = COMBO_DATA['combo-referrer-' + type] || [];
+    }
+    if (dd) dd.classList.remove('open');
+  }
+
+  // ===================================================
+  //  代理商管理 — 右抽屉
+  // ===================================================
+  const AGENT_DATA = {
+    'AG001': {
+      name: '代理商Alpha', id: 'AG001', merNo: 'MER20260001',
+      level: '一级代理', type: '直签', status: '启用',
+      referrer: '张三（中介）', bizOwner: '商务A',
+      upayUid: 'UID10000001', fortpayNo: 'FP20001',
+      inviteCode: 'ALPHA2026', chargeWallet: '0xA1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6',
+      withdrawWallet: '0xE5F6A7B8C9D0E1F2A3B4C5D6F7A8B9C0',
+      chargeRate: '1.20%', mortgageRate: '0.50%',
+      createdAt: '2026-03-01 10:00:00', updatedAt: '2026-04-06 14:22:00',
+      upgradeStatus: 'done',
+      rechargeAmt: 128000, rechargeTarget: 100000,
+      subAgentCount: 8, subAgentTarget: 5,
+      periodMonths: 3, periodTarget: 3,
+    },
+    'AG002': {
+      name: '代理商Beta', id: 'AG002', merNo: 'MER20260002',
+      level: '二级代理', type: '分销', status: '启用',
+      referrer: '李四（中介）', bizOwner: '商务B',
+      upayUid: 'UID10000002', fortpayNo: 'FP20002',
+      inviteCode: 'BETA2026', chargeWallet: '0xC9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4',
+      withdrawWallet: '0xA3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8',
+      chargeRate: '1.50%', mortgageRate: '0.80%',
+      createdAt: '2026-03-05 14:30:00', updatedAt: '2026-04-05 09:10:00',
+      upgradeStatus: 'undone',
+      rechargeAmt: 38000, rechargeTarget: 100000,
+      subAgentCount: 2, subAgentTarget: 5,
+      periodMonths: 1, periodTarget: 3,
+    },
+    'AG003': {
+      name: '代理商Gamma', id: 'AG003', merNo: 'MER20260003',
+      level: '一级代理', type: '直签', status: '启用',
+      referrer: '商务A', bizOwner: '商务A',
+      upayUid: 'UID10000003', fortpayNo: 'FP20003',
+      inviteCode: 'GAMMA2026', chargeWallet: '0xB5C6D7E8F9A0B1C2D3E4F5A6B7C8D9E0',
+      withdrawWallet: '0xF9A0B1C2D3E4F5A6B7C8D9E0F1A2B3C4',
+      chargeRate: '1.20%', mortgageRate: '0.50%',
+      createdAt: '2026-03-10 09:00:00', updatedAt: '2026-04-07 11:35:00',
+      upgradeStatus: 'done',
+      rechargeAmt: 215000, rechargeTarget: 100000,
+      subAgentCount: 12, subAgentTarget: 5,
+      periodMonths: 2, periodTarget: 3,
+    },
+    'AG004': {
+      name: '代理商Delta', id: 'AG004', merNo: 'MER20260004',
+      level: '二级代理', type: '分销', status: '停用',
+      referrer: '—', bizOwner: '商务B',
+      upayUid: 'UID10000004', fortpayNo: 'FP20004',
+      inviteCode: 'DELTA2026', chargeWallet: '0xD3E4F5A6B7C8D9E0F1A2B3C4D5E6F7A8',
+      withdrawWallet: '0xB7C8D9E0F1A2B3C4D5E6F7A8B9C0D1E2',
+      chargeRate: '1.80%', mortgageRate: '1.00%',
+      createdAt: '2026-03-15 16:00:00', updatedAt: '2026-04-04 08:50:00',
+      upgradeStatus: 'undone',
+      rechargeAmt: 12000, rechargeTarget: 100000,
+      subAgentCount: 0, subAgentTarget: 5,
+      periodMonths: 2, periodTarget: 3,
+    },
+    'AG005': {
+      name: '代理商Epsilon', id: 'AG005', merNo: 'MER20260005',
+      level: '二级代理', type: '直签', status: '启用',
+      referrer: '张三（中介）', bizOwner: '商务C',
+      upayUid: 'UID10000005', fortpayNo: 'FP20005',
+      inviteCode: 'EPS2026', chargeWallet: '0xF1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6',
+      withdrawWallet: '0xD5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0',
+      chargeRate: '1.50%', mortgageRate: '0.80%',
+      createdAt: '2026-03-20 11:15:00', updatedAt: '2026-04-07 16:00:00',
+      upgradeStatus: 'done',
+      rechargeAmt: 107500, rechargeTarget: 100000,
+      subAgentCount: 6, subAgentTarget: 5,
+      periodMonths: 3, periodTarget: 3,
+    },
+  };
+
+  function openAgentDrawer(agentId) {
+    const d = AGENT_DATA[agentId];
+    if (!d) return;
+    const isDone = d.upgradeStatus === 'done';
+    const rechargePct   = Math.min(100, Math.round(d.rechargeAmt / d.rechargeTarget * 100));
+    const subAgentPct   = Math.min(100, Math.round(d.subAgentCount / d.subAgentTarget * 100));
+    const periodPct     = Math.min(100, Math.round(d.periodMonths / d.periodTarget * 100));
+    const statusColor   = d.status === '启用' ? '#10b981' : '#9ca3af';
+    const upgradeBadge  = isDone
+      ? `<span style="background:#ecfdf5;color:#059669;border-radius:4px;padding:3px 10px;font-size:13px;font-weight:600;">✓ 已达成</span>`
+      : `<span style="background:#fff7ed;color:#f59e0b;border-radius:4px;padding:3px 10px;font-size:13px;font-weight:600;">✗ 未达成</span>`;
+
+    document.getElementById('agentDrawerBody').innerHTML = `
+      <!-- 基本信息 -->
+      <div class="drawer-section">
+        <div class="drawer-section-title"><span class="ds-icon">👤</span>基本信息</div>
+        <div class="drawer-grid">
+          <div class="drawer-item"><div class="di-label">代理商名称</div><div class="di-val">${d.name}</div></div>
+          <div class="drawer-item"><div class="di-label">代理商ID</div><div class="di-val">${d.id}</div></div>
+          <div class="drawer-item"><div class="di-label">商户编号</div><div class="di-val">${d.merNo}</div></div>
+          <div class="drawer-item"><div class="di-label">代理商级别</div><div class="di-val">${d.level}</div></div>
+          <div class="drawer-item"><div class="di-label">代理商类型</div><div class="di-val">${d.type}</div></div>
+          <div class="drawer-item"><div class="di-label">状态</div><div class="di-val" style="color:${statusColor};font-weight:600;">${d.status}</div></div>
+          <div class="drawer-item"><div class="di-label">推荐人</div><div class="di-val">${d.referrer || '—'}</div></div>
+          <div class="drawer-item"><div class="di-label">所属商务</div><div class="di-val">${d.bizOwner || '—'}</div></div>
+          <div class="drawer-item"><div class="di-label">创建时间</div><div class="di-val">${d.createdAt}</div></div>
+          <div class="drawer-item"><div class="di-label">更新时间</div><div class="di-val">${d.updatedAt}</div></div>
+        </div>
+      </div>
+
+      <!-- 账户信息 -->
+      <div class="drawer-section">
+        <div class="drawer-section-title"><span class="ds-icon">🔑</span>账户信息</div>
+        <div class="drawer-grid">
+          <div class="drawer-item"><div class="di-label">UPay代理商UID</div><div class="di-val">${d.upayUid}</div></div>
+          <div class="drawer-item"><div class="di-label">Fortpay客户编号</div><div class="di-val">${d.fortpayNo}</div></div>
+          <div class="drawer-item"><div class="di-label">邀请码</div><div class="di-val" style="font-family:monospace;letter-spacing:1px;">${d.inviteCode}</div></div>
+          <div class="drawer-item"><div class="di-label">充值费率</div><div class="di-val">${d.chargeRate}</div></div>
+          <div class="drawer-item"><div class="di-label">抵押费率</div><div class="di-val">${d.mortgageRate}</div></div>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="drawer-item" style="margin-bottom:8px;"><div class="di-label">充币钱包</div><div class="di-val" style="font-size:12px;word-break:break-all;font-family:monospace;">${d.chargeWallet}</div></div>
+          <div class="drawer-item"><div class="di-label">提币钱包</div><div class="di-val" style="font-size:12px;word-break:break-all;font-family:monospace;">${d.withdrawWallet}</div></div>
+        </div>
+      </div>
+
+      <!-- 晋级达成情况 -->
+      <div class="drawer-section">
+        <div class="drawer-section-title">
+          <span class="ds-icon">📈</span>晋级达成情况
+          <span style="margin-left:auto;">${upgradeBadge}</span>
+        </div>
+
+        <div class="progress-row">
+          <div class="pr-header">
+            <span class="pr-label">充值量</span>
+            <span class="pr-pct">${rechargePct}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar ${isDone ? 'done' : ''}" style="width:${rechargePct}%;"></div>
+          </div>
+          <div class="pr-detail">
+            当前 <span>${d.rechargeAmt.toLocaleString()} USDT</span> ／ 目标 <span>${d.rechargeTarget.toLocaleString()} USDT</span>
+          </div>
+        </div>
+
+        <div class="progress-row">
+          <div class="pr-header">
+            <span class="pr-label">拓展二级代理数量</span>
+            <span class="pr-pct">${subAgentPct}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar ${isDone ? 'done' : ''}" style="width:${subAgentPct}%;"></div>
+          </div>
+          <div class="pr-detail">
+            当前 <span>${d.subAgentCount} 人</span> ／ 目标 <span>${d.subAgentTarget} 人</span>
+          </div>
+        </div>
+
+        <div class="progress-row">
+          <div class="pr-header">
+            <span class="pr-label">达标周期</span>
+            <span class="pr-pct">${periodPct}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar ${isDone ? 'done' : ''}" style="width:${periodPct}%;"></div>
+          </div>
+          <div class="pr-detail">
+            已完成 <span>${d.periodMonths} 个月</span> ／ 要求 <span>${d.periodTarget} 个月</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('agentDrawerTitle').textContent = d.name + ' — 详情';
+    document.getElementById('agentDrawerMask').classList.add('open');
+    document.getElementById('agentDrawer').classList.add('open');
+  }
+
+  function closeAgentDrawer() {
+    document.getElementById('agentDrawerMask').classList.remove('open');
+    document.getElementById('agentDrawer').classList.remove('open');
+  }
+
+  // ===== 代理商编辑弹窗（仅推荐人/所属商务） =====
+  function openAgentEditModal(agentId) {
+    const d = AGENT_DATA[agentId];
+    if (!d) return;
+    document.getElementById('agentEditTitle').textContent = d.name + ' — 编辑';
+    document.getElementById('agentEditReferrer').value = d.referrer || '';
+    document.getElementById('agentEditBizOwner').value = d.bizOwner || '';
+    document.getElementById('agentEditModal').dataset.agentId = agentId;
+    document.getElementById('agentEditModal').classList.add('show');
+  }
+  function closeAgentEditModal() {
+    document.getElementById('agentEditModal').classList.remove('show');
+  }
+  function submitAgentEdit() {
+    const agentId = document.getElementById('agentEditModal').dataset.agentId;
+    const d = AGENT_DATA[agentId];
+    if (d) {
+      d.referrer  = document.getElementById('agentEditReferrer').value;
+      d.bizOwner  = document.getElementById('agentEditBizOwner').value;
+    }
+    closeAgentEditModal();
+  }
+
+  document.getElementById('agentDrawerMask').addEventListener('click', closeAgentDrawer);
+</script>
+</body>
+</html>

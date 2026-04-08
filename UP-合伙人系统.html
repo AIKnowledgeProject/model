@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UP 后台管理系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+body{display:flex;height:100vh;overflow:hidden;background:#F0F2F5;}
+
+/* ── Sidebar ── */
+.sidebar{width:220px;min-width:220px;background:#165DFF;color:#fff;display:flex;flex-direction:column;height:100vh;overflow-y:auto;}
+.logo{padding:20px 24px;font-size:18px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.15);letter-spacing:1px;}
+.nav-group{}
+.nav-group-title{padding:12px 20px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
+.nav-group-title:hover{background:rgba(255,255,255,.08);}
+.nav-group-title .arrow{transition:transform .2s;font-size:10px;}
+.nav-group-title.open .arrow{transform:rotate(180deg);}
+.nav-sub{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.nav-sub.show{max-height:400px;}
+.nav-sub-item{padding:10px 16px 10px 36px;font-size:14px;cursor:pointer;color:rgba(255,255,255,.85);transition:background .15s;}
+.nav-sub-item:hover{background:rgba(255,255,255,.12);}
+.nav-sub-item.active{background:rgba(255,255,255,.22);font-weight:600;color:#fff;}
+
+/* ── Right shell ── */
+.shell{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* topbar */
+.topbar{height:50px;background:#fff;border-bottom:1px solid #E5E6EB;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;}
+.topbar-left{font-size:13px;color:#86909C;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.lang-btn{padding:5px 14px;border:1px solid #165DFF;border-radius:4px;background:#fff;color:#165DFF;font-size:13px;cursor:pointer;transition:all .15s;}
+.lang-btn:hover{background:#165DFF;color:#fff;}
+.user-info{font-size:13px;color:#4E5969;}
+
+/* tab bar */
+.tabbar{height:40px;background:#fff;border-bottom:1px solid #E5E6EB;display:flex;align-items:flex-end;padding:0 16px;gap:2px;flex-shrink:0;overflow-x:auto;}
+.tabbar::-webkit-scrollbar{height:0;}
+.tab-item{padding:8px 16px;font-size:13px;cursor:pointer;border:1px solid transparent;border-radius:6px 6px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px;background:#F2F3F5;color:#86909C;}
+.tab-item.active{background:#36D399;color:#fff;border-color:#36D399;}
+.tab-item .tab-close{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;}
+.tab-item.active .tab-close:hover{background:rgba(0,0,0,.2);}
+
+/* page area */
+.pages{flex:1;overflow-y:auto;padding:20px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* card */
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:20px;margin-bottom:16px;}
+
+/* search grid */
+.search-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 20px;}
+.form-item{display:flex;flex-direction:column;gap:6px;}
+.form-item label{font-size:13px;color:#4E5969;font-weight:500;}
+.form-item input,.form-item select{padding:9px 12px;border:1px solid #E5E6EB;border-radius:6px;font-size:13px;color:#1D2129;background:#F5F7FA;outline:none;}
+.form-item input:focus,.form-item select:focus{border-color:#165DFF;background:#fff;}
+.btn-row{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;margin-top:4px;}
+
+/* buttons */
+.btn{padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;}
+.btn-primary{background:#165DFF;color:#fff;}
+.btn-primary:hover{background:#0E4CD8;}
+.btn-green{background:#36D399;color:#fff;}
+.btn-green:hover{background:#29B882;}
+.btn-default{background:#F2F3F5;color:#4E5969;border:1px solid #E5E6EB;}
+.btn-default:hover{background:#E8E9ED;}
+.btn-danger{background:#F53F3F;color:#fff;}
+.btn-danger:hover{background:#D42E2E;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+
+/* summary cards */
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}
+.summary-card{background:#fff;border-radius:8px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.summary-card .sc-label{font-size:13px;color:#86909C;margin-bottom:8px;}
+.summary-card .sc-value{font-size:22px;font-weight:700;color:#1D2129;}
+.summary-card .sc-value.green{color:#36D399;}
+.summary-card .sc-value.red{color:#F53F3F;}
+.summary-card .sc-value.blue{color:#165DFF;}
+
+/* table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#F5F7FA;padding:11px 14px;text-align:left;font-weight:600;color:#1D2129;border-bottom:1px solid #E5E6EB;white-space:nowrap;}
+td{padding:11px 14px;border-bottom:1px solid #F2F3F5;color:#4E5969;white-space:nowrap;}
+tr:hover td{background:#F8F9FC;}
+.tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;}
+.tag-green{background:#E8FFF3;color:#36D399;}
+.tag-red{background:#FFF0F0;color:#F53F3F;}
+.tag-blue{background:#EBF2FF;color:#165DFF;}
+.tag-gray{background:#F2F3F5;color:#86909C;}
+.tag-orange{background:#FFF4E5;color:#FF7D00;}
+
+/* pagination */
+.pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:16px;font-size:13px;color:#4E5969;}
+.pg-btn{padding:5px 11px;border:1px solid #E5E6EB;border-radius:4px;cursor:pointer;background:#fff;color:#4E5969;}
+.pg-btn.active{background:#165DFF;color:#fff;border-color:#165DFF;}
+.pg-btn:hover:not(.active){background:#F5F7FA;}
+
+/* table-header row */
+.table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.table-header .left{font-size:14px;font-weight:600;color:#1D2129;}
+.table-header .right{display:flex;gap:10px;}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;}
+.overlay.show{display:flex;}
+.modal{background:#fff;border-radius:10px;padding:0;width:540px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.15);}
+.modal.wide{width:720px;}
+.modal-head{padding:18px 24px;border-bottom:1px solid #F2F3F5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-head h3{font-size:16px;font-weight:600;color:#1D2129;}
+.modal-close{font-size:20px;color:#86909C;cursor:pointer;line-height:1;}
+.modal-close:hover{color:#1D2129;}
+.modal-body{padding:24px;overflow-y:auto;flex:1;}
+.modal-foot{padding:16px 24px;border-top:1px solid #F2F3F5;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
+
+/* form in modal */
+.mform-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.mform-full{grid-column:1/-1;}
+.mform-item{display:flex;flex-direction:column;gap:6px;}
+.mform-item label{font-size:13px;color:#4E5969;font-weight:500;}
+.mform-item input,.mform-item select,.mform-item textarea{padding:9px 12px;border:1px solid #E5E6EB;border-radius:6px;font-size:13px;color:#1D2129;background:#F5F7FA;outline:none;width:100%;}
+.mform-item input:focus,.mform-item select:focus,.mform-item textarea:focus{border-color:#165DFF;background:#fff;}
+.required{color:#F53F3F;}
+
+/* permission tree */
+.perm-tree{border:1px solid #E5E6EB;border-radius:6px;padding:12px;max-height:320px;overflow-y:auto;background:#F9FAFB;}
+.perm-module{margin-bottom:10px;}
+.perm-module-title{display:flex;align-items:center;gap:8px;font-weight:600;color:#1D2129;font-size:13px;cursor:pointer;padding:4px 0;}
+.perm-actions{padding-left:24px;display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:4px;}
+.perm-action-item{display:flex;align-items:center;gap:4px;font-size:13px;color:#4E5969;}
+.perm-action-item input[type=checkbox]{accent-color:#165DFF;}
+
+/* search user */
+.search-inline{display:flex;gap:10px;margin-bottom:14px;}
+.search-inline input,.search-inline select{padding:8px 12px;border:1px solid #E5E6EB;border-radius:6px;font-size:13px;background:#F5F7FA;outline:none;flex:1;}
+
+/* ── Right Drawer ── */
+.drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:none;}
+.drawer-mask.show{display:block;}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:520px;max-width:96vw;background:#fff;z-index:501;
+  display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.12);
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.drawer.show{transform:translateX(0);}
+.drawer-head{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid #F2F3F5;flex-shrink:0;}
+.drawer-head h3{font-size:16px;font-weight:600;color:#1D2129;}
+.drawer-close{font-size:22px;color:#86909C;cursor:pointer;line-height:1;}
+.drawer-close:hover{color:#1D2129;}
+.drawer-body{flex:1;overflow-y:auto;padding:24px;}
+/* detail sections */
+.detail-section{margin-bottom:24px;}
+.detail-section-title{font-size:13px;font-weight:600;color:#86909C;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #F2F3F5;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;}
+.detail-item{display:flex;flex-direction:column;gap:3px;}
+.detail-item .d-label{font-size:12px;color:#86909C;}
+.detail-item .d-value{font-size:14px;color:#1D2129;font-weight:500;word-break:break-all;}
+.detail-item.full{grid-column:1/-1;}
+.table-wrap{position:relative;}
+/* sticky actions column */
+.tbl-actions-th,.tbl-actions-td{position:sticky;right:0;z-index:3;background:#F5F7FA;}
+.tbl-actions-td{background:#fff;}
+tr:hover .tbl-actions-td{background:#F8F9FC;}
+/* resize handle */
+.th-inner{display:flex;align-items:center;justify-content:space-between;gap:4px;user-select:none;}
+.th-label{flex:1;overflow:hidden;text-overflow:ellipsis;}
+.resize-handle{width:4px;min-width:4px;height:20px;cursor:col-resize;border-radius:2px;background:transparent;transition:background .15s;}
+.resize-handle:hover,.resize-handle.dragging{background:#165DFF;}
+/* drag-over highlight */
+th.drag-over{background:#EBF2FF !important;outline:2px dashed #165DFF;outline-offset:-2px;}
+th.dragging-src{opacity:.4;}
+/* col settings popover */
+.col-settings-wrap{position:relative;}
+.col-settings-panel{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #E5E6EB;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:14px 16px;z-index:200;width:260px;}
+.col-settings-panel.show{display:block;}
+.col-settings-panel .csp-title{font-size:13px;font-weight:600;color:#1D2129;margin-bottom:4px;}
+.col-settings-panel .csp-tip{font-size:12px;color:#86909C;margin-bottom:10px;}
+.col-settings-list{display:flex;flex-direction:column;gap:2px;max-height:400px;overflow-y:auto;}
+.csp-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#1D2129;padding:6px 8px;border-radius:6px;cursor:default;transition:background .12s;user-select:none;}
+.csp-item:hover{background:#F5F7FA;}
+.csp-item.csp-drag-over{background:#EBF2FF;outline:1px dashed #165DFF;}
+.csp-item.csp-dragging{opacity:.4;}
+.csp-drag-handle{color:#C0C4CC;cursor:grab;font-size:14px;flex-shrink:0;line-height:1;}
+.csp-drag-handle:active{cursor:grabbing;}
+.csp-item input[type=checkbox]{accent-color:#165DFF;cursor:pointer;flex-shrink:0;}
+.csp-item .csp-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<div class="sidebar">
+  <div class="logo" data-i18n="sysName">UP 管理后台</div>
+
+  <!-- 统计中心 -->
+  <div class="nav-group">
+    <div class="nav-group-title open" onclick="toggleGroup(this)" data-i18n="nav.stats">
+      📊 <span data-i18n="nav.stats">统计中心</span><span class="arrow">▼</span>
+    </div>
+    <div class="nav-sub show">
+      <div class="nav-sub-item active" onclick="openPage('stats','nav.stats.commission')" data-i18n="nav.stats.commission">商务提成统计</div>
+    </div>
+  </div>
+
+  <!-- 系统设置 -->
+  <div class="nav-group">
+    <div class="nav-group-title open" onclick="toggleGroup(this)">
+      ⚙️ <span data-i18n="nav.system">系统设置</span><span class="arrow">▼</span>
+    </div>
+    <div class="nav-sub show">
+      <div class="nav-sub-item" onclick="openPage('roles','nav.system.roles')" data-i18n="nav.system.roles">角色权限管理</div>
+      <div class="nav-sub-item" onclick="openPage('users','nav.system.users')" data-i18n="nav.system.users">用户管理</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ SHELL ════════════ -->
+<div class="shell">
+
+  <!-- topbar -->
+  <div class="topbar">
+    <div class="topbar-left" id="breadcrumb">首页</div>
+    <div class="topbar-right">
+      <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
+      <span class="user-info">👤 Admin</span>
+    </div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabbar" id="tabbar">
+    <div class="tab-item active" id="tab-home" onclick="switchTab('home')">
+      <span data-i18n="tab.home">首页</span>
+    </div>
+  </div>
+
+  <!-- pages -->
+  <div class="pages">
+
+    <!-- ── HOME ── -->
+    <div class="page active" id="page-home">
+      <div class="card" style="text-align:center;padding:60px 0;">
+        <div style="font-size:48px;margin-bottom:16px;">🏠</div>
+        <div style="font-size:20px;font-weight:600;color:#1D2129;" data-i18n="home.welcome">欢迎使用 UP 后台管理系统</div>
+        <div style="font-size:14px;color:#86909C;margin-top:8px;" data-i18n="home.desc">请从左侧菜单选择功能模块</div>
+      </div>
+    </div>
+
+    <!-- ── STATS: 商务提成统计 ── -->
+    <div class="page" id="page-stats">
+
+      <!-- search -->
+      <div class="card">
+        <div class="search-grid">
+          <div class="form-item">
+            <label data-i18n="stats.docType">提成单据类型</label>
+            <select><option data-i18n="common.all">全部</option><option data-i18n="stats.commSettle">提成结算</option><option data-i18n="stats.commRefund">提成退回</option></select>
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.agentName">代理商名称</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.agentLevel">代理商级别</label>
+            <select><option data-i18n="common.all">全部</option><option>一级</option><option>二级</option><option>三级</option></select>
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.agentType">代理商类型</label>
+            <select><option data-i18n="common.all">全部</option><option data-i18n="stats.direct">直签</option><option data-i18n="stats.dist">分销</option></select>
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.bizType">业务类型</label>
+            <select><option data-i18n="common.all">全部</option><option data-i18n="stats.biz.card">开卡</option><option data-i18n="stats.biz.topup">充值</option><option data-i18n="stats.biz.consume">消费</option></select>
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.bizQuery">商务查询</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.brokerQuery">中介查询</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.commSettleTime">提成结算/退回时间</label>
+            <input type="text" placeholder="开始时间 ~ 结束时间">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.tradeTime">交易时间</label>
+            <input type="text" placeholder="开始时间 ~ 结束时间">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.refundTime">退款时间</label>
+            <input type="text" placeholder="开始时间 ~ 结束时间">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.tradeRelId">交易关联ID</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.commNo">提成单号</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.saleOrderNo">订单号</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="stats.refundNo">退单号</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-default" onclick="resetForm(this)" data-i18n="common.reset">重置</button>
+            <button class="btn btn-primary" data-i18n="common.query">查询</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- summary -->
+      <div class="summary-row" style="grid-template-columns:repeat(6,1fr);">
+        <div class="summary-card">
+          <div class="sc-label" data-i18n="stats.card.agentCount">代理商总数</div>
+          <div class="sc-value blue">1,256</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label" data-i18n="stats.card.commTotal">预计提成总金额</div>
+          <div class="sc-value green">125,689.23 USDT</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label" data-i18n="stats.card.commRefund">预计提成退回总金额</div>
+          <div class="sc-value red">8,921.56 USDT</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label" data-i18n="stats.card.commNet">预计应提成总额</div>
+          <div class="sc-value">116,767.67 USDT</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label" data-i18n="stats.card.cardComm">开卡提成金额</div>
+          <div class="sc-value green">34,200.00 USDT</div>
+        </div>
+        <div class="summary-card">
+          <div class="sc-label" data-i18n="stats.card.topupComm">充值提成金额</div>
+          <div class="sc-value green">91,489.23 USDT</div>
+        </div>
+      </div>
+
+      <!-- list -->
+      <div class="card">
+        <div class="table-header">
+          <div class="left" data-i18n="stats.list.title">提成明细列表</div>
+          <div class="right">
+            <div class="col-settings-wrap">
+              <button class="btn btn-default btn-sm" id="colSettingsBtn" onclick="toggleColPanel()" data-i18n="stats.customCols">自定义列</button>
+              <div class="col-settings-panel" id="colSettingsPanel">
+                <div class="csp-title" data-i18n="stats.customCols.title">选择显示字段</div>
+                <div class="csp-tip" data-i18n="stats.customCols.tip">勾选显示 / 拖拽排序</div>
+                <div class="col-settings-list" id="colSettingsList"></div>
+              </div>
+            </div>
+            <button class="btn btn-green btn-sm" data-i18n="common.export">导出数据</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="statsTable" style="table-layout:fixed;"></table>
+        </div>
+        <div class="pagination">
+          <span data-i18n="common.pageSize">每页</span>
+          <select style="padding:4px 8px;border:1px solid #E5E6EB;border-radius:4px;font-size:12px;">
+            <option>10</option><option>20</option><option>50</option><option>100</option>
+          </select>
+          <span data-i18n="common.pageTotal">条，共1256条</span>
+          <button class="pg-btn" data-i18n="common.prev">上一页</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn">2</button>
+          <button class="pg-btn">3</button>
+          <button class="pg-btn">…</button>
+          <button class="pg-btn">126</button>
+          <button class="pg-btn" data-i18n="common.next">下一页</button>
+        </div>
+      </div>
+    </div><!-- /page-stats -->
+
+    <!-- ── ROLES: 角色权限管理 ── -->
+    <div class="page" id="page-roles">
+      <div class="card">
+        <div class="search-inline">
+          <input type="text" data-i18n-ph="roles.searchPh">
+          <button class="btn btn-primary" data-i18n="common.query">查询</button>
+          <button class="btn btn-default" onclick="resetForm(this)" data-i18n="common.reset">重置</button>
+        </div>
+        <div class="table-header">
+          <div class="left" data-i18n="roles.title">角色列表</div>
+          <div class="right">
+            <button class="btn btn-green btn-sm" onclick="openRoleModal()" data-i18n="roles.add">+ 新增角色</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="common.seq">序号</th>
+              <th data-i18n="roles.col.name">角色名称</th>
+              <th data-i18n="roles.col.code">角色编码</th>
+              <th data-i18n="roles.col.desc">描述</th>
+              <th data-i18n="roles.col.userCount">关联用户数</th>
+              <th data-i18n="common.status">状态</th>
+              <th data-i18n="common.createTime">创建时间</th>
+              <th data-i18n="common.actions">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td><td>超级管理员</td><td>SUPER_ADMIN</td><td>拥有所有权限</td><td>1</td>
+              <td><span class="tag tag-green" data-i18n="common.normal">正常</span></td>
+              <td>2026-01-01 00:00:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openRoleModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openPermModal()" data-i18n="roles.perms">权限配置</a>
+                <a href="#" style="color:#F53F3F;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td><td>运营人员</td><td>OPERATOR</td><td>负责日常运营</td><td>5</td>
+              <td><span class="tag tag-green" data-i18n="common.normal">正常</span></td>
+              <td>2026-01-15 09:30:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openRoleModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openPermModal()" data-i18n="roles.perms">权限配置</a>
+                <a href="#" style="color:#F53F3F;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td>3</td><td>财务人员</td><td>FINANCE</td><td>查看统计报表</td><td>3</td>
+              <td><span class="tag tag-green" data-i18n="common.normal">正常</span></td>
+              <td>2026-02-01 10:00:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openRoleModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openPermModal()" data-i18n="roles.perms">权限配置</a>
+                <a href="#" style="color:#86909C;cursor:default;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td>4</td><td>只读用户</td><td>READ_ONLY</td><td>仅查看权限</td><td>8</td>
+              <td><span class="tag tag-gray" data-i18n="common.disabled">禁用</span></td>
+              <td>2026-03-01 14:00:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openRoleModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openPermModal()" data-i18n="roles.perms">权限配置</a>
+                <a href="#" style="color:#F53F3F;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span data-i18n="common.pageSize">每页</span>
+          <select style="padding:4px 8px;border:1px solid #E5E6EB;border-radius:4px;font-size:12px;">
+            <option>10</option><option>20</option>
+          </select>
+          <span>条，共4条</span>
+          <button class="pg-btn" data-i18n="common.prev">上一页</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn" data-i18n="common.next">下一页</button>
+        </div>
+      </div>
+    </div><!-- /page-roles -->
+
+    <!-- ── USERS: 用户管理 ── -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="search-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="form-item">
+            <label data-i18n="users.username">用户名</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="users.realname">真实姓名</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="users.role">所属角色</label>
+            <select><option data-i18n="common.all">全部</option><option>超级管理员</option><option>运营人员</option><option>财务人员</option></select>
+          </div>
+          <div class="form-item">
+            <label data-i18n="users.mobile">手机号</label>
+            <input type="text" data-i18n-ph="common.input">
+          </div>
+          <div class="form-item">
+            <label data-i18n="common.status">状态</label>
+            <select><option data-i18n="common.all">全部</option><option data-i18n="common.normal">正常</option><option data-i18n="common.disabled">禁用</option></select>
+          </div>
+          <div class="form-item">
+            <label data-i18n="common.createTime">创建时间</label>
+            <input type="text" placeholder="开始时间 ~ 结束时间">
+          </div>
+          <div class="btn-row" style="grid-column:1/-1;">
+            <button class="btn btn-default" onclick="resetForm(this)" data-i18n="common.reset">重置</button>
+            <button class="btn btn-primary" data-i18n="common.query">查询</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-header">
+          <div class="left" data-i18n="users.title">用户列表</div>
+          <div class="right">
+            <button class="btn btn-green btn-sm" onclick="openUserModal()" data-i18n="users.add">+ 新增用户</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="common.seq">序号</th>
+              <th data-i18n="users.username">用户名</th>
+              <th data-i18n="users.realname">真实姓名</th>
+              <th data-i18n="users.mobile">手机号</th>
+              <th data-i18n="users.email">邮箱</th>
+              <th data-i18n="users.role">角色</th>
+              <th data-i18n="common.status">状态</th>
+              <th data-i18n="common.createTime">创建时间</th>
+              <th data-i18n="common.lastLogin">最后登录</th>
+              <th data-i18n="common.actions">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td><td>admin</td><td>系统管理员</td><td>138****0001</td><td>admin@example.com</td>
+              <td><span class="tag tag-blue">超级管理员</span></td>
+              <td><span class="tag tag-green" data-i18n="common.normal">正常</span></td>
+              <td>2026-01-01</td><td>2026-04-01 09:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openUserModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#FF7D00;margin-right:8px;" data-i18n="users.resetPwd">重置密码</a>
+                <a href="#" style="color:#86909C;cursor:default;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td><td>operator01</td><td>张三</td><td>139****0002</td><td>zhangsan@example.com</td>
+              <td><span class="tag tag-blue">运营人员</span></td>
+              <td><span class="tag tag-green" data-i18n="common.normal">正常</span></td>
+              <td>2026-01-15</td><td>2026-04-01 10:30</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openUserModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#FF7D00;margin-right:8px;" data-i18n="users.resetPwd">重置密码</a>
+                <a href="#" style="color:#F53F3F;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td>3</td><td>finance01</td><td>李四</td><td>137****0003</td><td>lisi@example.com</td>
+              <td><span class="tag tag-orange">财务人员</span></td>
+              <td><span class="tag tag-green" data-i18n="common.normal">正常</span></td>
+              <td>2026-02-01</td><td>2026-03-28 16:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openUserModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#FF7D00;margin-right:8px;" data-i18n="users.resetPwd">重置密码</a>
+                <a href="#" style="color:#F53F3F;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td>4</td><td>readonly01</td><td>王五</td><td>136****0004</td><td>wangwu@example.com</td>
+              <td><span class="tag tag-gray">只读用户</span></td>
+              <td><span class="tag tag-gray" data-i18n="common.disabled">禁用</span></td>
+              <td>2026-03-01</td><td>2026-03-20 11:00</td>
+              <td>
+                <a href="#" style="color:#165DFF;margin-right:8px;" onclick="openUserModal(true)" data-i18n="common.edit">编辑</a>
+                <a href="#" style="color:#FF7D00;margin-right:8px;" data-i18n="users.resetPwd">重置密码</a>
+                <a href="#" style="color:#F53F3F;" data-i18n="common.delete">删除</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span data-i18n="common.pageSize">每页</span>
+          <select style="padding:4px 8px;border:1px solid #E5E6EB;border-radius:4px;font-size:12px;">
+            <option>10</option><option>20</option>
+          </select>
+          <span>条，共4条</span>
+          <button class="pg-btn" data-i18n="common.prev">上一页</button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn" data-i18n="common.next">下一页</button>
+        </div>
+      </div>
+    </div><!-- /page-users -->
+
+  </div><!-- /pages -->
+</div><!-- /shell -->
+
+<!-- ════════════ RIGHT DRAWER: 提成详情 ════════════ -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="detailDrawer">
+  <div class="drawer-head">
+    <h3 data-i18n="stats.drawer.title">提成单详情</h3>
+    <span class="drawer-close" onclick="closeDrawer()">×</span>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<!-- ════════════ MODALS ════════════ -->
+
+<!-- Role Add/Edit Modal -->
+<div class="overlay" id="roleModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3 id="roleModalTitle" data-i18n="roles.modal.addTitle">新增角色</h3>
+      <span class="modal-close" onclick="closeModal('roleModal')">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="mform-grid">
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="roles.col.name">角色名称</span></label>
+          <input type="text" data-i18n-ph="common.input">
+        </div>
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="roles.col.code">角色编码</span></label>
+          <input type="text" placeholder="例：OPERATOR">
+        </div>
+        <div class="mform-item mform-full">
+          <label data-i18n="roles.col.desc">描述</label>
+          <textarea rows="2" data-i18n-ph="common.input" style="resize:vertical;"></textarea>
+        </div>
+        <div class="mform-item">
+          <label data-i18n="common.status">状态</label>
+          <select>
+            <option data-i18n="common.normal">正常</option>
+            <option data-i18n="common.disabled">禁用</option>
+          </select>
+        </div>
+        <div class="mform-item mform-full">
+          <label><span class="required">*</span> <span data-i18n="roles.modal.selectPerms">选择权限</span></label>
+          <div class="perm-tree" style="max-height:260px;">
+            <!-- 统计中心 -->
+            <div class="perm-module">
+              <div class="perm-module-title">
+                <input type="checkbox" id="rm-stats-all" onchange="toggleModulePerms(this)" style="accent-color:#165DFF;">
+                <span>📊 <span data-i18n="nav.stats">统计中心</span></span>
+              </div>
+              <div class="perm-actions">
+                <label class="perm-action-item"><input type="checkbox" class="rm-stats"> <span data-i18n="perm.view">查看</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-stats"> <span data-i18n="perm.export">导出</span></label>
+              </div>
+            </div>
+            <div class="perm-module" style="padding-left:20px;">
+              <div class="perm-module-title">
+                <input type="checkbox" id="rm-comm-all" onchange="toggleModulePerms(this)" style="accent-color:#165DFF;">
+                <span data-i18n="nav.stats.commission">商务提成统计</span>
+              </div>
+              <div class="perm-actions">
+                <label class="perm-action-item"><input type="checkbox" class="rm-comm"> <span data-i18n="perm.view">查看</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-comm"> <span data-i18n="perm.export">导出</span></label>
+              </div>
+            </div>
+            <!-- 系统设置 -->
+            <div class="perm-module">
+              <div class="perm-module-title">
+                <input type="checkbox" id="rm-sys-all" onchange="toggleModulePerms(this)" style="accent-color:#165DFF;">
+                <span>⚙️ <span data-i18n="nav.system">系统设置</span></span>
+              </div>
+            </div>
+            <div class="perm-module" style="padding-left:20px;">
+              <div class="perm-module-title">
+                <input type="checkbox" id="rm-roles-all" onchange="toggleModulePerms(this)" style="accent-color:#165DFF;">
+                <span data-i18n="nav.system.roles">角色权限管理</span>
+              </div>
+              <div class="perm-actions">
+                <label class="perm-action-item"><input type="checkbox" class="rm-roles"> <span data-i18n="perm.view">查看</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-roles"> <span data-i18n="perm.add">新增</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-roles"> <span data-i18n="perm.edit">编辑</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-roles"> <span data-i18n="perm.delete">删除</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-roles"> <span data-i18n="perm.config">配置权限</span></label>
+              </div>
+            </div>
+            <div class="perm-module" style="padding-left:20px;">
+              <div class="perm-module-title">
+                <input type="checkbox" id="rm-users-all" onchange="toggleModulePerms(this)" style="accent-color:#165DFF;">
+                <span data-i18n="nav.system.users">用户管理</span>
+              </div>
+              <div class="perm-actions">
+                <label class="perm-action-item"><input type="checkbox" class="rm-users"> <span data-i18n="perm.view">查看</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-users"> <span data-i18n="perm.add">新增</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-users"> <span data-i18n="perm.edit">编辑</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-users"> <span data-i18n="perm.delete">删除</span></label>
+                <label class="perm-action-item"><input type="checkbox" class="rm-users"> <span data-i18n="perm.resetPwd">重置密码</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('roleModal')" data-i18n="common.cancel">取消</button>
+      <button class="btn btn-primary" data-i18n="common.confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Permission Config Modal -->
+<div class="overlay" id="permModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3 data-i18n="roles.modal.permTitle">权限配置</h3>
+      <span class="modal-close" onclick="closeModal('permModal')">×</span>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:#86909C;margin-bottom:12px;" data-i18n="roles.modal.permTip">当前角色：运营人员 &nbsp;|&nbsp; 勾选需要开放的权限</div>
+      <div class="perm-tree">
+        <!-- 统计中心 -->
+        <div class="perm-module">
+          <div class="perm-module-title">
+            <input type="checkbox" checked style="accent-color:#165DFF;">
+            <span>📊 <span data-i18n="nav.stats">统计中心</span></span>
+          </div>
+          <div class="perm-actions">
+            <label class="perm-action-item"><input type="checkbox" checked> <span data-i18n="perm.view">查看</span></label>
+            <label class="perm-action-item"><input type="checkbox" checked> <span data-i18n="perm.export">导出</span></label>
+          </div>
+        </div>
+        <!-- 统计中心 > 商务提成统计 -->
+        <div class="perm-module" style="padding-left:20px;">
+          <div class="perm-module-title">
+            <input type="checkbox" checked style="accent-color:#165DFF;">
+            <span data-i18n="nav.stats.commission">商务提成统计</span>
+          </div>
+          <div class="perm-actions">
+            <label class="perm-action-item"><input type="checkbox" checked> <span data-i18n="perm.view">查看</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.export">导出</span></label>
+          </div>
+        </div>
+        <!-- 系统设置 -->
+        <div class="perm-module">
+          <div class="perm-module-title">
+            <input type="checkbox" style="accent-color:#165DFF;">
+            <span>⚙️ <span data-i18n="nav.system">系统设置</span></span>
+          </div>
+          <div class="perm-actions">
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.view">查看</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.add">新增</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.edit">编辑</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.delete">删除</span></label>
+          </div>
+        </div>
+        <!-- 系统设置 > 角色权限管理 -->
+        <div class="perm-module" style="padding-left:20px;">
+          <div class="perm-module-title">
+            <input type="checkbox" style="accent-color:#165DFF;">
+            <span data-i18n="nav.system.roles">角色权限管理</span>
+          </div>
+          <div class="perm-actions">
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.view">查看</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.add">新增</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.edit">编辑</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.delete">删除</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.config">配置权限</span></label>
+          </div>
+        </div>
+        <!-- 系统设置 > 用户管理 -->
+        <div class="perm-module" style="padding-left:20px;">
+          <div class="perm-module-title">
+            <input type="checkbox" style="accent-color:#165DFF;">
+            <span data-i18n="nav.system.users">用户管理</span>
+          </div>
+          <div class="perm-actions">
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.view">查看</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.add">新增</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.edit">编辑</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.delete">删除</span></label>
+            <label class="perm-action-item"><input type="checkbox"> <span data-i18n="perm.resetPwd">重置密码</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('permModal')" data-i18n="common.cancel">取消</button>
+      <button class="btn btn-primary" data-i18n="common.save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Add/Edit Modal -->
+<div class="overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="userModalTitle" data-i18n="users.modal.addTitle">新增用户</h3>
+      <span class="modal-close" onclick="closeModal('userModal')">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="mform-grid">
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="users.username">用户名</span></label>
+          <input type="text" data-i18n-ph="common.input">
+        </div>
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="users.realname">真实姓名</span></label>
+          <input type="text" data-i18n-ph="common.input">
+        </div>
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="users.mobile">手机号</span></label>
+          <input type="tel" data-i18n-ph="common.input">
+        </div>
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="users.email">邮箱</span></label>
+          <input type="email" data-i18n-ph="common.input">
+        </div>
+        <div class="mform-item">
+          <label><span class="required">*</span> <span data-i18n="users.role">所属角色</span></label>
+          <select>
+            <option data-i18n="common.pleaseSelect">请选择</option>
+            <option>超级管理员</option>
+            <option>运营人员</option>
+            <option>财务人员</option>
+            <option>只读用户</option>
+          </select>
+        </div>
+        <div class="mform-item">
+          <label data-i18n="common.status">状态</label>
+          <select>
+            <option data-i18n="common.normal">正常</option>
+            <option data-i18n="common.disabled">禁用</option>
+          </select>
+        </div>
+        <div class="mform-item" id="pwdField">
+          <label><span class="required">*</span> <span data-i18n="users.password">初始密码</span></label>
+          <input type="password" placeholder="至少8位，含字母和数字">
+        </div>
+        <div class="mform-item">
+          <label data-i18n="users.dataScope">数据权限</label>
+          <input type="text" value="仅个人数据" disabled
+            data-i18n-val="users.dataScope.personal"
+            style="background:#F2F3F5;color:#86909C;cursor:not-allowed;border-color:#E5E6EB;">
+          <span style="font-size:12px;color:#86909C;margin-top:2px;" data-i18n="users.dataScope.tip">当前版本数据权限固定，不可变更</span>
+        </div>
+        <div class="mform-item">
+          <label data-i18n="users.remark">备注</label>
+          <input type="text" data-i18n-ph="common.input">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('userModal')" data-i18n="common.cancel">取消</button>
+      <button class="btn btn-primary" data-i18n="common.confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ SCRIPT ════════════ -->
+<script>
+// ── i18n ──────────────────────────────────────────────
+const i18n = {
+  zh: {
+    sysName: 'UP 管理后台',
+    'nav.stats': '统计中心',
+    'nav.stats.commission': '商务提成统计',
+    'nav.system': '系统设置',
+    'nav.system.roles': '角色权限管理',
+    'nav.system.users': '用户管理',
+    'tab.home': '首页',
+    'home.welcome': '欢迎使用 UP 后台管理系统',
+    'home.desc': '请从左侧菜单选择功能模块',
+    'common.all': '全部',
+    'common.input': '请输入',
+    'common.reset': '重置',
+    'common.query': '查询',
+    'common.export': '导出数据',
+    'common.save': '保存',
+    'common.cancel': '取消',
+    'common.confirm': '确定',
+    'common.edit': '编辑',
+    'common.delete': '删除',
+    'common.status': '状态',
+    'common.normal': '正常',
+    'common.disabled': '禁用',
+    'common.createTime': '创建时间',
+    'common.lastLogin': '最后登录',
+    'common.actions': '操作',
+    'common.seq': '序号',
+    'common.pageSize': '每页',
+    'common.pageTotal': '条，共1256条',
+    'common.prev': '上一页',
+    'common.next': '下一页',
+    'common.pleaseSelect': '请选择',
+    'stats.docType': '提成单据类型',
+    'stats.commSettle': '提成结算',
+    'stats.commRefund': '提成退回',
+    'stats.order': '订单',
+    'stats.refund': '退款单',
+    'stats.agentId': '代理商ID',
+    'stats.agentName': '代理商名称',
+    'stats.agentLevel': '代理商级别',
+    'stats.agentType': '代理商类型',
+    'stats.direct': '直签',
+    'stats.dist': '分销',
+    'stats.bizType': '业务类型',
+    'stats.biz.card': '开卡',
+    'stats.biz.topup': '充值',
+    'stats.biz.consume': '消费',
+    'stats.bizQuery': '商务查询',
+    'stats.brokerQuery': '中介查询',
+    'stats.commSettleTime': '提成结算/退回时间',
+    'stats.tradeTime': '交易时间',
+    'stats.tradeRelId': '交易关联ID',
+    'stats.commNo': '提成单号',
+    'stats.saleOrderNo': '订单号',
+    'stats.refundNo': '退单号',
+    'stats.refundTime': '退款时间',
+    'stats.card.agentCount': '代理商总数',
+    'stats.card.commTotal': '预计提成总金额',
+    'stats.card.commRefund': '预计提成退回总金额',
+    'stats.card.commNet': '预计应提成总额',
+    'stats.card.cardComm': '开卡提成金额',
+    'stats.card.topupComm': '充值提成金额',
+    'stats.list.title': '提成明细列表',
+    'stats.col.settleTime': '提成结算/退回时间',
+    'stats.col.commNo': '提成单号',
+    'stats.col.docType': '提成单据类型（提成结算/提成退回）',
+    'stats.col.agentId': '代理商ID',
+    'stats.col.agentName': '代理商名称',
+    'stats.col.agentLevel': '代理商级别',
+    'stats.col.agentType': '代理商类型',
+    'stats.col.bizName': '业务名称',
+    'stats.col.bizSource': '业务来源',
+    'stats.col.cardOrg': '卡组织',
+    'stats.col.cardChannel': '卡渠道',
+    'stats.col.cardName': '卡名称',
+    'stats.col.amount': '业务金额(USDT)',
+    'stats.col.gradient': '提成梯度',
+    'stats.col.rate': '预计提成比例/金额',
+    'stats.col.commAmt': '预计提成金额(USDT)',
+    'stats.col.confirmedAmt': '确认提成金额(USDT)',
+    'stats.col.bizOwner': '所属商务',
+    'stats.col.broker': '所属中介',
+    'stats.col.tradeId': '交易关联ID',
+    'stats.col.tradeTime': '交易时间',
+    'stats.col.refundTime': '退款时间',
+    'stats.col.relOrder': '关联订单/退款单',
+    'stats.customCols': '自定义列',
+    'stats.customCols.title': '字段显示与排序',
+    'stats.customCols.tip': '勾选显示 / 拖拽排序',
+    'stats.col.actions': '操作',
+    'stats.action.view': '查看',
+    'stats.drawer.title': '提成单详情',
+    'stats.drawer.basic': '基本信息',
+    'stats.drawer.agent': '代理商信息',
+    'stats.drawer.trade': '交易信息',
+    'stats.drawer.comm': '提成信息',
+    'roles.title': '角色列表',
+    'roles.add': '+ 新增角色',
+    'roles.searchPh': '搜索角色名称/编码',
+    'roles.col.name': '角色名称',
+    'roles.col.code': '角色编码',
+    'roles.col.desc': '描述',
+    'roles.col.userCount': '关联用户数',
+    'roles.perms': '权限配置',
+    'roles.modal.addTitle': '新增角色',
+    'roles.modal.editTitle': '编辑角色',
+    'roles.modal.permTitle': '权限配置',
+    'roles.modal.permTip': '当前角色：运营人员 | 勾选需要开放的权限',
+    'users.title': '用户列表',
+    'users.add': '+ 新增用户',
+    'users.username': '用户名',
+    'users.realname': '真实姓名',
+    'users.mobile': '手机号',
+    'users.email': '邮箱',
+    'users.role': '所属角色',
+    'users.password': '初始密码',
+    'users.remark': '备注',
+    'users.resetPwd': '重置密码',
+    'users.modal.addTitle': '新增用户',
+    'users.modal.editTitle': '编辑用户',
+    'users.dataScope': '数据权限',
+    'users.dataScope.personal': '仅个人数据',
+    'users.dataScope.tip': '当前版本数据权限固定，不可变更',
+    'roles.modal.selectPerms': '选择权限',
+    'perm.view': '查看',
+    'perm.add': '新增',
+    'perm.edit': '编辑',
+    'perm.delete': '删除',
+    'perm.export': '导出',
+    'perm.config': '配置权限',
+    'perm.resetPwd': '重置密码',
+    'breadcrumb.home': '首页',
+    'breadcrumb.stats': '首页 / 统计中心 / 商务提成统计',
+    'breadcrumb.roles': '首页 / 系统设置 / 角色权限管理',
+    'breadcrumb.users': '首页 / 系统设置 / 用户管理',
+  },
+  en: {
+    sysName: 'UP Admin',
+    'nav.stats': 'Statistics',
+    'nav.stats.commission': 'Agent Commission',
+    'nav.system': 'System Settings',
+    'nav.system.roles': 'Role & Permission',
+    'nav.system.users': 'User Management',
+    'tab.home': 'Home',
+    'home.welcome': 'Welcome to UP Admin System',
+    'home.desc': 'Please select a module from the left menu',
+    'common.all': 'All',
+    'common.input': 'Please input',
+    'common.reset': 'Reset',
+    'common.query': 'Search',
+    'common.export': 'Export',
+    'common.save': 'Save',
+    'common.cancel': 'Cancel',
+    'common.confirm': 'Confirm',
+    'common.edit': 'Edit',
+    'common.delete': 'Delete',
+    'common.status': 'Status',
+    'common.normal': 'Active',
+    'common.disabled': 'Disabled',
+    'common.createTime': 'Created At',
+    'common.lastLogin': 'Last Login',
+    'common.actions': 'Actions',
+    'common.seq': '#',
+    'common.pageSize': 'Per page',
+    'common.pageTotal': ', Total 1256',
+    'common.prev': 'Prev',
+    'common.next': 'Next',
+    'common.pleaseSelect': 'Please select',
+    'stats.docType': 'Doc Type',
+    'stats.order': 'Order',
+    'stats.refund': 'Refund',
+    'stats.agentId': 'Agent ID',
+    'stats.agentName': 'Agent Name',
+    'stats.agentLevel': 'Agent Level',
+    'stats.agentType': 'Agent Type',
+    'stats.direct': 'Direct',
+    'stats.dist': 'Distribution',
+    'stats.bizType': 'Biz Type',
+    'stats.biz.card': 'Card Open',
+    'stats.biz.topup': 'Top-up',
+    'stats.biz.consume': 'Consume',
+    'stats.bizQuery': 'Sales Query',
+    'stats.brokerQuery': 'Broker Query',
+    'stats.commSettleTime': 'Commission Settle Time',
+    'stats.tradeTime': 'Trade Time',
+    'stats.tradeRelId': 'Trade Relation ID',
+    'stats.commNo': 'Commission No.',
+    'stats.saleOrderNo': 'Order No.',
+    'stats.refundNo': 'Refund No.',
+    'stats.refundTime': 'Refund Time',
+    'stats.card.agentCount': 'Total Agents',
+    'stats.card.commTotal': 'Est. Commission',
+    'stats.card.commRefund': 'Est. Commission Refund',
+    'stats.card.commNet': 'Net Commission',
+    'stats.card.cardComm': 'Card Open Comm.',
+    'stats.card.topupComm': 'Top-up Comm.',
+    'stats.list.title': 'Commission Details',
+    'stats.col.settleTime': 'Settle/Refund Time',
+    'stats.col.commNo': 'Commission No.',
+    'stats.col.docType': 'Comm. Doc Type',
+    'stats.col.agentId': 'Agent ID',
+    'stats.col.agentName': 'Agent Name',
+    'stats.col.agentLevel': 'Level',
+    'stats.col.agentType': 'Type',
+    'stats.col.bizName': 'Biz Name',
+    'stats.col.bizSource': 'Biz Source',
+    'stats.col.cardOrg': 'Card Org.',
+    'stats.col.cardChannel': 'Card Channel',
+    'stats.col.cardName': 'Card Name',
+    'stats.col.amount': 'Biz Amount(USDT)',
+    'stats.col.gradient': 'Gradient',
+    'stats.col.rate': 'Est. Rate/Amount',
+    'stats.col.commAmt': 'Est. Comm.(USDT)',
+    'stats.col.confirmedAmt': 'Confirmed Comm.(USDT)',
+    'stats.col.bizOwner': 'Sales Owner',
+    'stats.col.broker': 'Broker',
+    'stats.col.tradeId': 'Trade ID',
+    'stats.col.tradeTime': 'Trade Time',
+    'stats.col.refundTime': 'Refund Time',
+    'stats.col.relOrder': 'Related Order',
+    'stats.customCols': 'Columns',
+    'stats.customCols.title': 'Show & Reorder Columns',
+    'stats.customCols.tip': 'Check to show / drag to reorder',
+    'stats.col.actions': 'Actions',
+    'stats.action.view': 'View',
+    'stats.drawer.title': 'Commission Detail',
+    'stats.drawer.basic': 'Basic Info',
+    'stats.drawer.agent': 'Agent Info',
+    'stats.drawer.trade': 'Trade Info',
+    'stats.drawer.comm': 'Commission Info',
+    'roles.title': 'Role List',
+    'roles.add': '+ Add Role',
+    'roles.searchPh': 'Search name / code',
+    'roles.col.name': 'Role Name',
+    'roles.col.code': 'Code',
+    'roles.col.desc': 'Description',
+    'roles.col.userCount': 'Users',
+    'roles.perms': 'Permissions',
+    'roles.modal.addTitle': 'Add Role',
+    'roles.modal.editTitle': 'Edit Role',
+    'roles.modal.permTitle': 'Permission Config',
+    'roles.modal.permTip': 'Role: Operator | Check the permissions to grant',
+    'users.title': 'User List',
+    'users.add': '+ Add User',
+    'users.username': 'Username',
+    'users.realname': 'Full Name',
+    'users.mobile': 'Mobile',
+    'users.email': 'Email',
+    'users.role': 'Role',
+    'users.password': 'Init Password',
+    'users.remark': 'Remark',
+    'users.resetPwd': 'Reset Pwd',
+    'users.modal.addTitle': 'Add User',
+    'users.modal.editTitle': 'Edit User',
+    'users.dataScope': 'Data Scope',
+    'users.dataScope.personal': 'Personal Data Only',
+    'users.dataScope.tip': 'Data scope is fixed in current version',
+    'roles.modal.selectPerms': 'Select Permissions',
+    'perm.view': 'View',
+    'perm.add': 'Add',
+    'perm.edit': 'Edit',
+    'perm.delete': 'Delete',
+    'perm.export': 'Export',
+    'perm.config': 'Config Perm',
+    'perm.resetPwd': 'Reset Pwd',
+    'breadcrumb.home': 'Home',
+    'breadcrumb.stats': 'Home / Statistics / Agent Commission',
+    'breadcrumb.roles': 'Home / System Settings / Role & Permission',
+    'breadcrumb.users': 'Home / System Settings / User Management',
+  }
+};
+
+let currentLang = 'zh';
+
+function t(key) {
+  return (i18n[currentLang] && i18n[currentLang][key]) || key;
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-ph'));
+  });
+  document.querySelectorAll('[data-i18n-val]').forEach(el => {
+    el.value = t(el.getAttribute('data-i18n-val'));
+  });
+  document.getElementById('langBtn').textContent = currentLang === 'zh' ? 'EN' : '中文';
+  // Update breadcrumb for current page
+  const activePage = document.querySelector('.page.active');
+  if (activePage) {
+    const pid = activePage.id.replace('page-', '');
+    const bcKey = 'breadcrumb.' + pid;
+    if (i18n[currentLang][bcKey]) {
+      document.getElementById('breadcrumb').textContent = t(bcKey);
+    }
+  }
+  // Update tab labels for open tabs
+  document.querySelectorAll('.tab-item[data-page]').forEach(tab => {
+    const pk = tab.getAttribute('data-page');
+    const labelKey = 'nav.stats.commission' === pk ? 'nav.stats.commission'
+      : pk === 'roles' ? 'nav.system.roles'
+      : pk === 'users' ? 'nav.system.users'
+      : 'tab.home';
+    tab.querySelector('span.tab-label').textContent = t(labelKey);
+  });
+  document.querySelector('#tab-home span').textContent = t('tab.home');
+  // re-render stats table so column headers update
+  renderStatsTable();
+  buildColPanel();
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  applyLang();
+}
+
+// ── Nav ──────────────────────────────────────────────
+function toggleGroup(el) {
+  el.classList.toggle('open');
+  const sub = el.nextElementSibling;
+  sub.classList.toggle('show');
+}
+
+// ── Page & Tab ───────────────────────────────────────
+const pageConfig = {
+  stats:  { labelKey: 'nav.stats.commission',  bcKey: 'breadcrumb.stats'  },
+  roles:  { labelKey: 'nav.system.roles',       bcKey: 'breadcrumb.roles'  },
+  users:  { labelKey: 'nav.system.users',       bcKey: 'breadcrumb.users'  },
+  home:   { labelKey: 'tab.home',               bcKey: 'breadcrumb.home'   },
+};
+
+const openTabs = ['home']; // currently open tab page ids
+
+function openPage(pageId, labelKey) {
+  // activate nav item
+  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  // add tab if not exists
+  if (!openTabs.includes(pageId)) {
+    openTabs.push(pageId);
+    const tab = document.createElement('div');
+    tab.className = 'tab-item';
+    tab.id = 'tab-' + pageId;
+    tab.setAttribute('data-page', pageId);
+    tab.innerHTML = `<span class="tab-label">${t(labelKey)}</span><span class="tab-close" onclick="closeTab('${pageId}',event)">×</span>`;
+    tab.addEventListener('click', function(e) {
+      if (!e.target.classList.contains('tab-close')) switchTab(pageId);
+    });
+    document.getElementById('tabbar').appendChild(tab);
+  }
+  switchTab(pageId);
+}
+
+function switchTab(pageId) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + pageId).classList.add('active');
+  document.getElementById('page-' + pageId).classList.add('active');
+  const cfg = pageConfig[pageId];
+  document.getElementById('breadcrumb').textContent = cfg ? t(cfg.bcKey) : '';
+}
+
+function closeTab(pageId, e) {
+  e.stopPropagation();
+  const idx = openTabs.indexOf(pageId);
+  if (idx === -1) return;
+  openTabs.splice(idx, 1);
+  document.getElementById('tab-' + pageId).remove();
+  // switch to adjacent tab
+  const next = openTabs[Math.min(idx, openTabs.length - 1)];
+  switchTab(next);
+  // deactivate nav if closing current
+  if (pageId !== 'home') {
+    document.querySelectorAll('.nav-sub-item').forEach(i => {
+      if (i.textContent.trim() === document.getElementById('page-' + next + '')) {/* skip */}
+    });
+  }
+}
+
+// ── Permission tree toggle (role modal) ──────────────
+function toggleModulePerms(masterCb) {
+  const cls = masterCb.id.replace('rm-', 'rm-').replace('-all', '');
+  // derive child class: rm-stats-all -> rm-stats
+  const childClass = masterCb.id.replace('-all', '').replace('rm-', 'rm-');
+  const children = masterCb.closest('.perm-module').querySelectorAll('.perm-actions input[type=checkbox]');
+  children.forEach(cb => cb.checked = masterCb.checked);
+}
+
+// ── Modals ───────────────────────────────────────────
+function openRoleModal(isEdit) {
+  document.getElementById('roleModalTitle').textContent = isEdit ? t('roles.modal.editTitle') : t('roles.modal.addTitle');
+  document.getElementById('roleModal').classList.add('show');
+}
+function openPermModal() {
+  document.getElementById('permModal').classList.add('show');
+}
+function openUserModal(isEdit) {
+  document.getElementById('userModalTitle').textContent = isEdit ? t('users.modal.editTitle') : t('users.modal.addTitle');
+  document.getElementById('pwdField').style.display = isEdit ? 'none' : '';
+  document.getElementById('userModal').classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// close modal on overlay click
+document.querySelectorAll('.overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ── Form reset ───────────────────────────────────────
+function resetForm(btn) {
+  const form = btn.closest('.card') || btn.closest('.search-area');
+  if (!form) return;
+  form.querySelectorAll('input').forEach(i => i.value = '');
+  form.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+}
+
+// ── Right Drawer ─────────────────────────────────────
+function openDrawer(rowIdx) {
+  const row = STATS_ROWS[rowIdx];
+  // Build section labels from i18n
+  const s = (k) => t(k);
+  const field = (label, value) =>
+    `<div class="detail-item"><span class="d-label">${label}</span><span class="d-value">${value || '-'}</span></div>`;
+  const fieldFull = (label, value) =>
+    `<div class="detail-item full"><span class="d-label">${label}</span><span class="d-value">${value || '-'}</span></div>`;
+
+  document.getElementById('drawerBody').innerHTML = `
+    <!-- 基本信息 -->
+    <div class="detail-section">
+      <div class="detail-section-title">${s('stats.drawer.basic')}</div>
+      <div class="detail-grid">
+        ${field(s('stats.col.bizOwner'), row[1])}
+        ${field(s('stats.col.commNo'), row[2])}
+        ${field(s('stats.col.docType'), row[3].replace(/<[^>]+>/g,''))}
+        ${field(s('stats.col.settleTime'), row[0])}
+        ${field(s('stats.col.bizName'), row[7])}
+        ${field(s('stats.col.bizSource'), row[8])}
+        ${field(s('stats.col.cardOrg'), row[9])}
+        ${field(s('stats.col.cardChannel'), row[10])}
+        ${field(s('stats.col.cardName'), row[11])}
+      </div>
+    </div>
+    <!-- 代理商信息 -->
+    <div class="detail-section">
+      <div class="detail-section-title">${s('stats.drawer.agent')}</div>
+      <div class="detail-grid">
+        ${field(s('stats.col.agentName'), row[4])}
+        ${field(s('stats.col.agentLevel'), row[5])}
+        ${field(s('stats.col.agentType'), row[6])}
+        ${field(s('stats.col.broker'), row[17])}
+      </div>
+    </div>
+    <!-- 交易信息 -->
+    <div class="detail-section">
+      <div class="detail-section-title">${s('stats.drawer.trade')}</div>
+      <div class="detail-grid">
+        ${field(s('stats.col.tradeId'), row[18])}
+        ${field(s('stats.col.tradeTime'), row[19])}
+        ${field(s('stats.col.amount'), row[12] + ' USDT')}
+        ${field(s('stats.col.refundTime'), row[20])}
+        ${fieldFull(s('stats.col.relOrder'), row[21])}
+      </div>
+    </div>
+    <!-- 提成信息 -->
+    <div class="detail-section">
+      <div class="detail-section-title">${s('stats.drawer.comm')}</div>
+      <div class="detail-grid">
+        ${field(s('stats.col.gradient'), row[13])}
+        ${field(s('stats.col.rate'), row[14])}
+        ${field(s('stats.col.commAmt'), row[15] + ' USDT')}
+        ${field(s('stats.col.confirmedAmt'), row[16] + ' USDT')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('drawerMask').classList.add('show');
+  document.getElementById('detailDrawer').classList.add('show');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerMask').classList.remove('show');
+  document.getElementById('detailDrawer').classList.remove('show');
+}
+
+// ── Stats dynamic table ───────────────────────────────
+
+// Column definitions (key, default width px)
+const STATS_COLS = [
+  { key:'settleTime',    w:180 },
+  { key:'bizOwner',      w:90  },
+  { key:'commNo',        w:160 },
+  { key:'docType',       w:200 },
+  { key:'agentName',     w:120 },
+  { key:'agentLevel',    w:90  },
+  { key:'agentType',     w:90  },
+  { key:'bizName',       w:80  },
+  { key:'bizSource',     w:120 },
+  { key:'cardOrg',       w:90  },
+  { key:'cardChannel',   w:90  },
+  { key:'cardName',      w:90  },
+  { key:'amount',        w:140 },
+  { key:'gradient',      w:90  },
+  { key:'rate',          w:130 },
+  { key:'commAmt',       w:160 },
+  { key:'confirmedAmt',  w:160 },
+  { key:'broker',        w:90  },
+  { key:'tradeId',       w:120 },
+  { key:'tradeTime',     w:150 },
+  { key:'refundTime',    w:150 },
+  { key:'relOrder',      w:160 },
+];
+
+// Track col order (indices into STATS_COLS), visibility, widths
+let colOrder   = STATS_COLS.map((_, i) => i);
+let colVisible = STATS_COLS.map(() => true);
+let colWidths  = STATS_COLS.map(c => c.w);
+
+// Sample rows: each value corresponds to STATS_COLS order
+// settleTime, bizOwner, commNo, docType, agentName, agentLevel, agentType, bizName, bizSource, cardOrg, cardChannel, cardName, amount, gradient, rate, commAmt, confirmedAmt, broker, tradeId, tradeTime, refundTime, relOrder
+const STATS_ROWS = [
+  ['2026-04-01 10:30:00','商务1','COMM20260401001','<span class="tag tag-green">提成结算</span>','代理商A','一级','直签','开卡','直属团队','Visa','线上','金卡','1,000.00','梯度3','5.00%','50.00','50.00','中介1','TRADE001','2026-04-01 10:25','-','-'],
+  ['2026-04-01 11:15:00','商务2','COMM20260401002','<span class="tag tag-red">提成退回</span>','代理商B','二级','分销','充值','下级代理','Mastercard','线下','普卡','-500.00','梯度2','3.00%','-15.00','-15.00','中介2','TRADE002','2026-04-01 11:00','2026-04-01 11:10','ORD20260401002'],
+  ['2026-04-02 09:05:00','商务1','COMM20260402003','<span class="tag tag-green">提成结算</span>','代理商C','一级','直签','消费','直属团队','UnionPay','线上','白金卡','2,500.00','梯度4','6.00%','150.00','150.00','-','TRADE003','2026-04-02 09:00','-','-'],
+];
+
+function renderStatsTable() {
+  const table = document.getElementById('statsTable');
+  if (!table) return;
+
+  const visIdx = colOrder.filter(i => colVisible[i]);
+
+  // ── thead ──
+  let headRow = '<thead><tr>';
+  visIdx.forEach(i => {
+    const col = STATS_COLS[i];
+    headRow += `<th data-col="${i}" style="width:${colWidths[i]}px;min-width:${colWidths[i]}px;" draggable="true"
+      ondragstart="colDragStart(event,${i})" ondragover="colDragOver(event)" ondrop="colDrop(event,${i})" ondragleave="colDragLeave(event)" ondragend="colDragEnd()">
+      <div class="th-inner">
+        <span class="th-label">${t('stats.col.'+col.key)}</span>
+        <span class="resize-handle" onmousedown="startResize(event,${i})"></span>
+      </div>
+    </th>`;
+  });
+  // sticky actions th
+  headRow += `<th class="tbl-actions-th" style="width:72px;min-width:72px;">${t('stats.col.actions')}</th>`;
+  headRow += '</tr></thead>';
+
+  // ── tbody ──
+  let body = '<tbody>';
+  STATS_ROWS.forEach((row, rowIdx) => {
+    body += '<tr>';
+    visIdx.forEach(i => {
+      body += `<td>${row[i]}</td>`;
+    });
+    body += `<td class="tbl-actions-td"><a href="#" style="color:#165DFF;font-size:13px;" onclick="openDrawer(${rowIdx});return false;">${t('stats.action.view')}</a></td>`;
+    body += '</tr>';
+  });
+  body += '</tbody>';
+
+  table.innerHTML = headRow + body;
+}
+
+// ── Column visibility + order panel ──────────────────
+let panelDragSrc = null; // position index in colOrder being dragged
+
+function buildColPanel() {
+  const list = document.getElementById('colSettingsList');
+  if (!list) return;
+  list.innerHTML = '';
+  // render in current colOrder so the list mirrors the table column sequence
+  colOrder.forEach((colIdx, pos) => {
+    const col = STATS_COLS[colIdx];
+    const label = t('stats.col.' + col.key);
+    const item = document.createElement('div');
+    item.className = 'csp-item';
+    item.dataset.pos = pos;        // position in colOrder
+    item.dataset.colidx = colIdx;  // actual column index
+    item.draggable = true;
+    item.innerHTML = `
+      <span class="csp-drag-handle" title="拖拽排序">⠿</span>
+      <input type="checkbox" ${colVisible[colIdx] ? 'checked' : ''}
+        onchange="toggleColVisible(${colIdx}, this.checked)">
+      <span class="csp-label">${label}</span>`;
+
+    // panel-internal drag events
+    item.addEventListener('dragstart', e => {
+      panelDragSrc = pos;
+      setTimeout(() => item.classList.add('csp-dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+      e.stopPropagation(); // don't trigger table header drag
+    });
+    item.addEventListener('dragend', () => {
+      panelDragSrc = null;
+      list.querySelectorAll('.csp-item').forEach(el => {
+        el.classList.remove('csp-dragging', 'csp-drag-over');
+      });
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (panelDragSrc === null || panelDragSrc === pos) return;
+      list.querySelectorAll('.csp-item').forEach(el => el.classList.remove('csp-drag-over'));
+      item.classList.add('csp-drag-over');
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('csp-drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      item.classList.remove('csp-drag-over');
+      if (panelDragSrc === null || panelDragSrc === pos) return;
+      // reorder colOrder
+      const moved = colOrder.splice(panelDragSrc, 1)[0];
+      colOrder.splice(pos, 0, moved);
+      renderStatsTable();
+      buildColPanel(); // rebuild list to reflect new order
+    });
+
+    list.appendChild(item);
+  });
+}
+
+function toggleColVisible(idx, show) {
+  colVisible[idx] = show;
+  renderStatsTable();
+  // don't rebuild panel — just keep current order/state
+}
+
+function toggleColPanel() {
+  const panel = document.getElementById('colSettingsPanel');
+  const willOpen = !panel.classList.contains('show');
+  panel.classList.toggle('show');
+  if (willOpen) buildColPanel(); // refresh order each time panel opens
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('colSettingsBtn');
+  const panel = document.getElementById('colSettingsPanel');
+  if (wrap && panel && !wrap.contains(e.target) && !panel.contains(e.target)) {
+    panel.classList.remove('show');
+  }
+});
+
+// ── Column drag-to-reorder ────────────────────────────
+let dragSrcCol = null;
+
+function colDragStart(e, colIdx) {
+  dragSrcCol = colIdx;
+  e.currentTarget.classList.add('dragging-src');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function colDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function colDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+function colDrop(e, targetColIdx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragSrcCol === null || dragSrcCol === targetColIdx) return;
+  const srcPos = colOrder.indexOf(dragSrcCol);
+  const tgtPos = colOrder.indexOf(targetColIdx);
+  colOrder.splice(srcPos, 1);
+  colOrder.splice(tgtPos, 0, dragSrcCol);
+  renderStatsTable();
+}
+function colDragEnd() {
+  dragSrcCol = null;
+  document.querySelectorAll('#statsTable th').forEach(th => {
+    th.classList.remove('dragging-src', 'drag-over');
+  });
+}
+
+// ── Column resize ─────────────────────────────────────
+let resizing = { active: false, colIdx: null, startX: 0, startW: 0 };
+
+function startResize(e, colIdx) {
+  e.preventDefault();
+  e.stopPropagation();
+  resizing = { active: true, colIdx, startX: e.clientX, startW: colWidths[colIdx] };
+  e.target.classList.add('dragging');
+  document.addEventListener('mousemove', onResizeMove);
+  document.addEventListener('mouseup', onResizeEnd);
+}
+function onResizeMove(e) {
+  if (!resizing.active) return;
+  const dx = e.clientX - resizing.startX;
+  const newW = Math.max(60, resizing.startW + dx);
+  colWidths[resizing.colIdx] = newW;
+  // update live without full re-render
+  const th = document.querySelector(`#statsTable th[data-col="${resizing.colIdx}"]`);
+  if (th) { th.style.width = newW + 'px'; th.style.minWidth = newW + 'px'; }
+}
+function onResizeEnd() {
+  resizing.active = false;
+  document.querySelectorAll('.resize-handle').forEach(h => h.classList.remove('dragging'));
+  document.removeEventListener('mousemove', onResizeMove);
+  document.removeEventListener('mouseup', onResizeEnd);
+}
+
+// ── Init ─────────────────────────────────────────────
+applyLang(); // also calls renderStatsTable + buildColPanel
+</script>
+</body>
+</html>
